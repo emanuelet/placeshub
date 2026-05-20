@@ -1,9 +1,11 @@
-import { pgTable, uuid, text, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { collections } from './collections'
 
 export const shares = pgTable('shares', {
   id: uuid('id').defaultRandom().primaryKey(),
-  collectionId: uuid('collection_id').notNull().references(() => collections.id, { onDelete: 'cascade' }),
+  collectionId: uuid('collection_id')
+    .notNull()
+    .references(() => collections.id, { onDelete: 'cascade' }),
   slug: text('slug').notNull().unique(),
   includeNotes: boolean('include_notes').notNull().default(false),
   placesSnapshot: jsonb('places_snapshot').notNull(),

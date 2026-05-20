@@ -1,5 +1,5 @@
-import { createMiddleware } from 'hono/factory'
 import { createClient } from '@supabase/supabase-js'
+import { createMiddleware } from 'hono/factory'
 import type { Bindings } from '../index'
 
 export type AuthEnv = {
@@ -24,7 +24,10 @@ export const auth = createMiddleware<AuthEnv>(async (c, next) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey)
-  const { data: { user }, error } = await supabase.auth.getUser(token)
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token)
 
   if (error || !user) {
     return c.json({ error: 'unauthorized' }, 401)

@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { places } from './routes/places'
 import { collections } from './routes/collections'
+import { places } from './routes/places'
 import { shares } from './routes/shares'
 
 export type Bindings = {
