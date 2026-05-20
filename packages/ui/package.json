@@ -6,21 +6,22 @@
     "./*": "./src/*.tsx"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "check": "biome check src",
+    "format": "biome format --write src",
+    "lint": "biome lint src",
     "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
+    "@biomejs/biome": "^2.2.0",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "*",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "eslint": "^9.39.1",
+    "@types/react-dom": "^19.2.3",
     "typescript": "*"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   }
 }

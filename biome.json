@@ -40,6 +40,14 @@
       "arrowParentheses": "always"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": true
+    }
+  },
   "json": {
     "formatter": {
       "trailingCommas": "none"

@@ -9,6 +9,7 @@ export default defineConfig({
     tanstackRouter({
       routesDirectory: './app/routes',
       generatedRouteTree: './app/routeTree.gen.ts',
+      disableEsLint: true,
     }),
     react(),
     tailwindcss(),

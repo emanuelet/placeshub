@@ -1,7 +1,13 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
 name = "placeshub-api"
 main = "src/index.ts"
-compatibility_date = "2025-05-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2025-10-16"
+compatibility_flags = ["nodejs_compat_v2"]
 
 [observability]
 enabled = true
+
+[vars]
+DATABASE_URL = ""
+SUPABASE_URL = ""
+SUPABASE_KEY = ""

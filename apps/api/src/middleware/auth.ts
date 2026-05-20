@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { createMiddleware } from 'hono/factory'
+import postgres from 'postgres'
 import type { Bindings } from '../index'
 
 export type AuthEnv = {
@@ -31,6 +32,20 @@ export const auth = createMiddleware<AuthEnv>(async (c, next) => {
 
   if (error || !user) {
     return c.json({ error: 'unauthorized' }, 401)
+  }
+
+  const client = postgres(c.env.DATABASE_URL)
+  try {
+    await client`
+      INSERT INTO users (id, email, display_name, avatar_url, created_at)
+      VALUES (${user.id}, ${user.email ?? null}, ${user.user_metadata?.full_name ?? null}, ${user.user_metadata?.avatar_url ?? null}, NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        display_name = COALESCE(EXCLUDED.display_name, users.display_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url)
+    `
+  } finally {
+    await client.end()
   }
 
   c.set('userId', user.id)
