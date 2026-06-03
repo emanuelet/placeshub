@@ -1,7 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { createRootRoute, Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { createRootRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { useEffect, useState } from 'react'
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { useEffect } from 'react'
 import { useLocalStorage, useMediaQuery } from 'usehooks-ts'
 import { AuthProvider, useAuth } from '@/lib/auth'
 import { MapProvider, useMapManager } from '@/lib/mapContext'
@@ -26,14 +27,16 @@ function ThemeToggle() {
     })
   }
 
+  const Icon = isDark === 'system' ? Monitor : isDarkMode ? Moon : Sun
+
   return (
     <button
       type="button"
       onClick={toggle}
-      className="text-sm hover:underline"
+      className="p-1.5 rounded hover:bg-muted transition-colors"
       aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {isDark === 'system' ? 'System' : isDarkMode ? 'Light' : 'Dark'}
+      <Icon className="h-4 w-4" />
     </button>
   )
 }
@@ -66,19 +69,13 @@ function AuthNav() {
 
 function MapLayout() {
   const { containerRef, mapLoaded } = useMapManager()
-  const [showMap, setShowMap] = useState(true)
+  const location = useLocation()
 
-  useEffect(() => {
-    const checkMapVisibility = () => {
-      const path = window.location.pathname
-      setShowMap(
-        path === '/dashboard' || path.startsWith('/collections/') || path.startsWith('/share/'),
-      )
-    }
-    checkMapVisibility()
-    window.addEventListener('popstate', checkMapVisibility)
-    return () => window.removeEventListener('popstate', checkMapVisibility)
-  }, [])
+  const showMap =
+    location.pathname === '/dashboard' ||
+    location.pathname.startsWith('/collections/') ||
+    location.pathname === '/collections' ||
+    location.pathname.startsWith('/share/')
 
   return (
     <div className="flex gap-4 h-[calc(100vh-80px)]">
