@@ -14,18 +14,18 @@
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",
     "@placeshub/db": "workspace:*",
-    "@supabase/supabase-js": "^2.106.0",
+    "@supabase/supabase-js": "^2.108.2",
     "drizzle-orm": "1.0.0-rc.3",
-    "hono": "^4.12.19",
+    "hono": "^4.12.25",
     "postgres": "^3.4.9",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "*",
-    "@cloudflare/workers-types": "^4.20260519.1",
+    "@cloudflare/workers-types": "^4.20260617.1",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "*",
     "typescript": "*",
-    "wrangler": "^4.92.0"
+    "wrangler": "^4.101.0"
   }
 }
