@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3012",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "biome check app",
