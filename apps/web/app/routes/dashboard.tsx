@@ -1,8 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { useSavedPlaces, useSavePlace } from '@/hooks/usePlaces'
+import { useDebounceValue } from 'usehooks-ts'
+import { toSavePlaceInput, useSavedPlaces, useSavePlace, useSearchPlaces } from '@/hooks/usePlaces'
 import { useAuth } from '@/lib/auth'
-import { type MapPlace, useMapManager } from '@/lib/mapContext'
+import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -10,25 +11,23 @@ export const Route = createFileRoute('/dashboard')({
 
 function Dashboard() {
   const { user } = useAuth()
-  const { data, isLoading } = useSavedPlaces()
+  const { data, isLoading, error } = useSavedPlaces()
   const savePlace = useSavePlace()
   const { setPlaces, setOnPlaceClick, flyTo } = useMapManager()
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery] = useDebounceValue(searchQuery, 300)
   const [showSaveForm, setShowSaveForm] = useState(false)
+  const { data: searchData, isLoading: isSearching } = useSearchPlaces(debouncedQuery)
 
   const savedPlaces = data?.savedPlaces ?? []
+  const searchResults = searchData?.places ?? []
 
   useEffect(() => {
-    const mapPlaces: MapPlace[] = (data?.savedPlaces ?? []).map((sp) => ({
-      id: sp.place.id,
-      name: sp.place.name,
-      lat: sp.place.lat ?? 0,
-      lng: sp.place.lng ?? 0,
-      address: sp.place.address ?? undefined,
-      rating: sp.place.rating ?? undefined,
-      notes: sp.notes ?? undefined,
-    }))
+    const mapPlaces: MapPlace[] = (data?.savedPlaces ?? []).flatMap((sp) => {
+      const place = toMapPlace(sp.place, sp.notes)
+      return place ? [place] : []
+    })
     setPlaces(mapPlaces)
     setOnPlaceClick((place) => {
       setSelectedPlace(place)
@@ -40,25 +39,15 @@ function Dashboard() {
     return (
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-2">Sign in to view your places</h1>
-        <a href="/auth/login" className="text-blue-600 hover:underline">
+        <Link to="/auth/login" className="font-semibold text-primary hover:underline">
           Sign in
-        </a>
+        </Link>
       </div>
     )
   }
 
-  const handleSavePlace = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchQuery) return
-
-    await savePlace.mutateAsync({
-      googlePlaceId: `manual-${Date.now()}`,
-      name: searchQuery,
-      lat: 51.5074,
-      lng: -0.1276,
-      address: 'London, UK',
-      googleMapsUri: `https://maps.google.com/?q=${encodeURIComponent(searchQuery)}`,
-    })
+  const handleSelectSearchResult = async (place: (typeof searchResults)[number]) => {
+    await savePlace.mutateAsync(toSavePlaceInput(place))
     setSearchQuery('')
     setShowSaveForm(false)
   }
@@ -67,60 +56,77 @@ function Dashboard() {
     return <div>Loading...</div>
   }
 
+  if (error) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-2">Couldn't load your places</h1>
+        <p className="text-muted-foreground">{error.message}</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="border rounded-lg p-4 overflow-y-auto flex flex-col gap-4 h-full">
+    <div className="ui-panel flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Saved Places ({savedPlaces.length})</h2>
+        <h2 className="text-base font-bold tracking-tight">Saved Places ({savedPlaces.length})</h2>
         <button
+          type="button"
           onClick={() => setShowSaveForm(!showSaveForm)}
-          className="text-sm text-blue-600 hover:underline"
+          className="ui-button ui-button-quiet min-h-9 px-2"
         >
           {showSaveForm ? 'Cancel' : '+ Add'}
         </button>
       </div>
 
       {showSaveForm && (
-        <form onSubmit={handleSavePlace} className="space-y-2">
+        <div className="space-y-2">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Place name..."
-            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="Search for a place..."
+            className="ui-input"
           />
-          <button
-            type="submit"
-            disabled={savePlace.isPending}
-            className="w-full bg-blue-600 text-white rounded px-3 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-          >
-            {savePlace.isPending ? 'Saving...' : 'Save place'}
-          </button>
-        </form>
+          {isSearching && <p className="text-xs text-muted-foreground">Searching...</p>}
+          {savePlace.isError && <p className="ui-alert-error text-xs">{savePlace.error.message}</p>}
+          {searchResults.length > 0 && (
+            <div className="max-h-64 divide-y overflow-y-auto rounded-control border bg-surface">
+              {searchResults.map((place) => (
+                <button
+                  key={place.googlePlaceId}
+                  type="button"
+                  disabled={savePlace.isPending}
+                  onClick={() => handleSelectSearchResult(place)}
+                  className="w-full p-3 text-left transition-colors hover:bg-muted disabled:opacity-50"
+                >
+                  <p className="font-medium text-sm">{place.name}</p>
+                  {place.address && (
+                    <p className="text-xs text-muted-foreground">{place.address}</p>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {savedPlaces.length === 0 && !showSaveForm && (
-        <p className="text-sm text-muted-foreground">No places saved yet.</p>
+        <p className="ui-empty-state">No places saved yet.</p>
       )}
 
       <div className="space-y-2">
         {savedPlaces.map((sp) => (
           <button
             key={sp.id}
+            type="button"
             onClick={() => {
-              const place: MapPlace = {
-                id: sp.place.id,
-                name: sp.place.name,
-                lat: sp.place.lat ?? 0,
-                lng: sp.place.lng ?? 0,
-                address: sp.place.address ?? undefined,
-                rating: sp.place.rating ?? undefined,
-                notes: sp.notes ?? undefined,
-              }
+              const place = toMapPlace(sp.place, sp.notes)
+              if (!place) return
               setSelectedPlace(place)
               flyTo(place.lat, place.lng)
             }}
-            className={`w-full text-left border rounded p-3 hover:bg-muted transition-colors ${
-              selectedPlace?.id === sp.place.id ? 'bg-muted border-blue-300' : ''
+            className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${
+              selectedPlace?.id === sp.place.id ? 'border-primary bg-muted' : ''
             }`}
           >
             <p className="font-medium text-sm">{sp.place.name}</p>

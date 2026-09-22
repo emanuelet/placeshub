@@ -62,11 +62,11 @@ function SharedView() {
   }>
 
   return (
-    <div className="border rounded-lg p-4 overflow-y-auto flex flex-col gap-4 h-full">
-      <h2 className="font-semibold">Places ({placesSnapshot.length})</h2>
-      <div className="grid gap-2 grid-cols-2">
+    <div className="ui-panel flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-5">
+      <h2 className="text-base font-bold tracking-tight">Places ({placesSnapshot.length})</h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {placesSnapshot.map((p) => (
-          <div key={p.id} className="border rounded p-2">
+          <div key={p.id} className="rounded-control border bg-surface p-3">
             <p className="font-medium text-sm truncate">{p.name}</p>
             {p.address && <p className="text-xs text-muted-foreground truncate">{p.address}</p>}
             {p.notes && (
@@ -77,7 +77,7 @@ function SharedView() {
                 href={p.googleMapsUri}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
               >
                 View on Google Maps
               </a>
