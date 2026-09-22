@@ -23,6 +23,21 @@ export interface SavedPlace {
   place: Place
 }
 
+export function toSavePlaceInput(place: Place) {
+  return {
+    googlePlaceId: place.googlePlaceId,
+    name: place.name,
+    lat: place.lat ?? undefined,
+    lng: place.lng ?? undefined,
+    address: place.address ?? undefined,
+    googleMapsUri: place.googleMapsUri ?? undefined,
+    types: place.types ?? undefined,
+    phone: place.phone ?? undefined,
+    website: place.website ?? undefined,
+    rating: place.rating ?? undefined,
+  }
+}
+
 export function useSavedPlaces() {
   return useQuery({
     queryKey: ['savedPlaces'],

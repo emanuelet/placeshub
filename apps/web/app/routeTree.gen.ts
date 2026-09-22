@@ -13,7 +13,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
-import { Route as CollectionsNewRouteImport } from './routes/collections/new'
 import { Route as CollectionsCollectionIdRouteImport } from './routes/collections/$collectionId'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
@@ -38,11 +37,6 @@ const ShareSlugRoute = ShareSlugRouteImport.update({
   path: '/share/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CollectionsNewRoute = CollectionsNewRouteImport.update({
-  id: '/collections/new',
-  path: '/collections/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CollectionsCollectionIdRoute = CollectionsCollectionIdRouteImport.update({
   id: '/collections/$collectionId',
   path: '/collections/$collectionId',
@@ -65,7 +59,6 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/collections/$collectionId': typeof CollectionsCollectionIdRoute
-  '/collections/new': typeof CollectionsNewRoute
   '/share/$slug': typeof ShareSlugRoute
   '/collections/': typeof CollectionsIndexRoute
 }
@@ -75,7 +68,6 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/collections/$collectionId': typeof CollectionsCollectionIdRoute
-  '/collections/new': typeof CollectionsNewRoute
   '/share/$slug': typeof ShareSlugRoute
   '/collections': typeof CollectionsIndexRoute
 }
@@ -86,7 +78,6 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/collections/$collectionId': typeof CollectionsCollectionIdRoute
-  '/collections/new': typeof CollectionsNewRoute
   '/share/$slug': typeof ShareSlugRoute
   '/collections/': typeof CollectionsIndexRoute
 }
@@ -98,7 +89,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/collections/$collectionId'
-    | '/collections/new'
     | '/share/$slug'
     | '/collections/'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +98,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/collections/$collectionId'
-    | '/collections/new'
     | '/share/$slug'
     | '/collections'
   id:
@@ -118,7 +107,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/collections/$collectionId'
-    | '/collections/new'
     | '/share/$slug'
     | '/collections/'
   fileRoutesById: FileRoutesById
@@ -129,7 +117,6 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
   CollectionsCollectionIdRoute: typeof CollectionsCollectionIdRoute
-  CollectionsNewRoute: typeof CollectionsNewRoute
   ShareSlugRoute: typeof ShareSlugRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
 }
@@ -164,13 +151,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/collections/new': {
-      id: '/collections/new'
-      path: '/collections/new'
-      fullPath: '/collections/new'
-      preLoaderRoute: typeof CollectionsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/collections/$collectionId': {
       id: '/collections/$collectionId'
       path: '/collections/$collectionId'
@@ -201,7 +181,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
   CollectionsCollectionIdRoute: CollectionsCollectionIdRoute,
-  CollectionsNewRoute: CollectionsNewRoute,
   ShareSlugRoute: ShareSlugRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
 }

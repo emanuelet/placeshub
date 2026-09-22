@@ -3,11 +3,26 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
-  --color-border: #e5e5e5;
-  --color-background: #ffffff;
-  --color-foreground: #171717;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --color-canvas: #f7f8fc;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-muted: #f0f2f7;
+  --color-muted-foreground: #667085;
+  --color-border: #dfe3eb;
+  --color-background: #f7f8fc;
+  --color-foreground: #172033;
+  --color-primary: #3155d9;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #2747bd;
+  --color-danger: #c83d5b;
+  --color-danger-surface: #fff1f3;
+  --color-success: #18794e;
+  --color-success-surface: #ecfdf3;
+  --color-ring: #7c92ef;
+  --radius-control: 0.625rem;
+  --radius-panel: 0.875rem;
+  --shadow-panel: 0 1px 2px rgb(23 32 51 / 0.04), 0 8px 24px rgb(23 32 51 / 0.06);
 }
 
 #root {
@@ -17,9 +32,106 @@
 }
 
 #root.dark {
-  --color-muted: #262626;
-  --color-muted-foreground: #a3a3a3;
-  --color-border: #404040;
-  --color-background: #0a0a0a;
-  --color-foreground: #fafafa;
+  --color-canvas: #111521;
+  --color-surface: #171d2b;
+  --color-surface-raised: #1c2434;
+  --color-muted: #252d3d;
+  --color-muted-foreground: #a9b4c7;
+  --color-border: #303b50;
+  --color-background: #111521;
+  --color-foreground: #eef2fa;
+  --color-primary: #8fa4ff;
+  --color-primary-foreground: #111521;
+  --color-primary-hover: #b1c0ff;
+  --color-danger: #ff9aad;
+  --color-danger-surface: #3b1d29;
+  --color-success: #6ed6a3;
+  --color-success-surface: #153529;
+  --color-ring: #aebcff;
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.2), 0 12px 30px rgb(0 0 0 / 0.24);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    background: var(--color-canvas);
+  }
+
+  body {
+    min-width: 320px;
+    background: var(--color-canvas);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :where(a, button, input, textarea, select):focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .ui-panel {
+    @apply rounded-panel border bg-surface shadow-panel;
+  }
+
+  .ui-panel-muted {
+    @apply rounded-panel border bg-muted;
+  }
+
+  .ui-button {
+    @apply inline-flex min-h-10 items-center justify-center rounded-control px-4 py-2 text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ui-button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+
+  .ui-button-secondary {
+    @apply border bg-surface text-foreground hover:bg-muted;
+  }
+
+  .ui-button-quiet {
+    @apply text-primary hover:bg-muted;
+  }
+
+  .ui-button-danger {
+    @apply text-danger hover:bg-danger-surface;
+  }
+
+  .ui-input {
+    @apply w-full rounded-control border bg-surface px-3 py-2.5 text-sm text-foreground shadow-sm placeholder:text-muted-foreground;
+  }
+
+  .ui-field-label {
+    @apply mb-1.5 block text-sm font-semibold text-foreground;
+  }
+
+  .ui-alert-error {
+    @apply rounded-control border border-danger bg-danger-surface px-3 py-2.5 text-sm text-danger;
+  }
+
+  .ui-alert-success {
+    @apply rounded-control border border-success bg-success-surface px-3 py-2.5 text-sm text-success;
+  }
+
+  .ui-page-title {
+    @apply text-xl font-bold tracking-tight text-foreground sm:text-2xl;
+  }
+
+  .ui-empty-state {
+    @apply rounded-panel border border-dashed bg-muted px-4 py-8 text-center text-sm text-muted-foreground;
+  }
 }

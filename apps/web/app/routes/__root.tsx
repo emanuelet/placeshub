@@ -33,7 +33,7 @@ function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="p-1.5 rounded hover:bg-muted transition-colors"
+      className="ui-button ui-button-secondary min-h-9 px-2"
       aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       <Icon className="h-4 w-4" />
@@ -55,11 +55,15 @@ function AuthNav() {
   return (
     <>
       {user ? (
-        <button type="button" onClick={handleSignOut} className="text-sm hover:underline ml-auto">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="ui-button ui-button-quiet min-h-9 px-2"
+        >
           Sign out
         </button>
       ) : (
-        <Link to="/auth/login" className="text-sm hover:underline ml-auto">
+        <Link to="/auth/login" className="ui-button ui-button-quiet min-h-9 px-2">
           Sign in
         </Link>
       )}
@@ -78,16 +82,18 @@ function MapLayout() {
     location.pathname.startsWith('/share/')
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-80px)]">
-      <div className={`flex-1 transition-all ${showMap ? 'block' : 'hidden'}`}>
-        <div ref={containerRef} className="w-full h-full rounded-lg" />
+    <div className="flex flex-col gap-4 lg:h-[calc(100vh-92px)] lg:flex-row">
+      <div
+        className={`relative min-h-72 overflow-hidden rounded-panel lg:flex-1 ${showMap ? 'block' : 'hidden'}`}
+      >
+        <div ref={containerRef} className="h-full min-h-72 w-full" />
         {!mapLoaded && showMap && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
             <p className="text-muted-foreground">Loading map...</p>
           </div>
         )}
       </div>
-      <div className={showMap ? 'w-80' : 'w-full'}>
+      <div className={showMap ? 'w-full lg:w-[23rem] lg:shrink-0' : 'mx-auto w-full max-w-5xl'}>
         <Outlet />
       </div>
     </div>
@@ -97,23 +103,23 @@ function MapLayout() {
 function RootLayout() {
   return (
     <>
-      <div className="min-h-screen font-sans">
-        <nav className="border-b px-4 py-3 flex items-center gap-6">
-          <Link to="/" className="font-bold text-lg">
+      <div className="min-h-screen bg-canvas font-sans">
+        <nav className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b bg-surface px-3 py-3 sm:px-5">
+          <Link to="/" className="mr-2 text-lg font-bold tracking-tight text-foreground">
             PlacesHub
           </Link>
-          <Link to="/dashboard" className="text-sm hover:underline">
+          <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 px-2">
             Dashboard
           </Link>
-          <Link to="/collections" className="text-sm hover:underline">
+          <Link to="/collections" className="ui-button ui-button-quiet min-h-9 px-2">
             Collections
           </Link>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
             <AuthNav />
           </div>
         </nav>
-        <main className="p-4">
+        <main className="mx-auto max-w-[1600px] p-3 sm:p-5">
           <MapProvider>
             <MapLayout />
           </MapProvider>
