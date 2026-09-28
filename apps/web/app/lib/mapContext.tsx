@@ -112,18 +112,14 @@ function renderMarkers() {
   }
   markers.length = 0
 
-  const handler = onPlaceClickHandler
-
   currentPlaces.forEach((place) => {
     const el = document.createElement('div')
     el.className =
-      'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-surface bg-primary text-primary-foreground shadow-lg transition-all hover:scale-110 hover:bg-primary-hover'
+      'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-surface bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary-hover'
     el.innerHTML =
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
 
-    if (handler) {
-      el.addEventListener('click', () => handler(place))
-    }
+    el.addEventListener('click', () => onPlaceClickHandler?.(place))
 
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat([place.lng, place.lat])
@@ -191,7 +187,6 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const setOnPlaceClick = useCallback((handler: ((place: MapPlace) => void) | null) => {
     onPlaceClickHandler = handler
-    renderMarkers()
   }, [])
 
   const setOnMapClick = useCallback((handler: ((lat: number, lng: number) => void) | null) => {
