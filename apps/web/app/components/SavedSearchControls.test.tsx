@@ -6,7 +6,6 @@ import { SavedSearchControls } from './SavedSearchControls'
 
 const { get } = vi.hoisted(() => ({ get: vi.fn() }))
 vi.mock('@/lib/api', () => ({ api: { get } }))
-vi.mock('usehooks-ts', () => ({ useDebounceValue: (value: string) => [value] }))
 
 function Search() {
   const state = useSavedPlaceSearch()
@@ -77,7 +76,7 @@ describe('saved place search controls', () => {
         ),
       ).toBe(true),
     )
-    fireEvent.click(await screen.findByRole('button', { name: 'Sydney (city)' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Sydney.*city/ }))
     await waitFor(() => {
       expect(
         requested('/saved/search?').some((url: string) => {
@@ -134,5 +133,37 @@ describe('saved place search controls', () => {
         }),
       ).toBe(true)
     })
+  })
+
+  it('waits for rapid filter changes and displays removable active filters', async () => {
+    renderSearch()
+    await screen.findByRole('option', { name: 'Sydney' })
+    const initialRequests = requested('/saved/search?').length
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'City' }), {
+      target: { value: 'Sydney' },
+    })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), {
+      target: { value: 'Cafe' },
+    })
+    expect(screen.getByRole('group', { name: 'Active filters' })).toHaveTextContent('City: Sydney')
+    expect(screen.getByRole('group', { name: 'Active filters' })).toHaveTextContent(
+      'Category: Cafe',
+    )
+    expect(requested('/saved/search?')).toHaveLength(initialRequests)
+
+    await waitFor(() =>
+      expect(
+        requested('/saved/search?').some((url) => {
+          const params = new URL(url, 'https://test').searchParams
+          return params.get('city') === 'Sydney' && params.get('category') === 'Cafe'
+        }),
+      ).toBe(true),
+    )
+    expect(requested('/saved/search?')).toHaveLength(initialRequests + 1)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove city filter' }))
+    expect(screen.queryByRole('button', { name: 'Remove city filter' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove category filter' })).toBeInTheDocument()
   })
 })

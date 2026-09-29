@@ -41,6 +41,10 @@ export function useSavedSearch(params: SavedSearchParams, enabled = true) {
     queryKey: ['savedSearch', params],
     queryFn: () => api.get<SavedSearchResponse>(`/saved/search?${queryString(params)}`),
     enabled,
+    placeholderData: (previous, query) =>
+      (query?.queryKey[1] as SavedSearchParams | undefined)?.collectionId === params.collectionId
+        ? previous
+        : undefined,
   })
 }
 

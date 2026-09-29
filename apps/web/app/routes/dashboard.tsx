@@ -90,7 +90,16 @@ function Dashboard() {
           options={data?.filters}
           collections={collectionsData?.collections ?? []}
         />
-        {isLoading && <p className="text-xs text-muted-foreground">Searching saved places...</p>}
+        {isLoading && (
+          <p role="status" className="text-xs text-muted-foreground">
+            Searching saved places...
+          </p>
+        )}
+        {!isLoading && savedSearch.search.isFetching && (
+          <p role="status" className="text-xs text-muted-foreground">
+            Updating results...
+          </p>
+        )}
         {error && (
           <p role="alert" className="ui-alert-error">
             Couldn't search saved places: {error.message}

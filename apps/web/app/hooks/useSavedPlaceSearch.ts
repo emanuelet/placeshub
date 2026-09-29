@@ -14,12 +14,13 @@ export function useSavedPlaceSearch(collectionId?: string, enabled = true) {
   const params: SavedSearchParams = {
     ...filters,
     collectionId: scope,
-    q: selectedLocation ? undefined : debouncedQuery,
+    q: selectedLocation ? undefined : query,
     locationType: selectedLocation?.type,
     locationValue: selectedLocation?.value,
   }
+  const [debouncedParams] = useDebounceValue(JSON.stringify(params), 300)
 
-  const search = useSavedSearch(params, enabled)
+  const search = useSavedSearch(JSON.parse(debouncedParams) as SavedSearchParams, enabled)
   const locations = useSavedLocations(debouncedQuery, scope, enabled && !selectedLocation)
 
   return {

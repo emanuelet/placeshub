@@ -247,7 +247,14 @@ function CollectionDetail() {
           options={savedSearch.search.data?.filters}
         />
         {savedSearch.search.isLoading && (
-          <p className="text-xs text-muted-foreground">Searching saved places...</p>
+          <p role="status" className="text-xs text-muted-foreground">
+            Searching saved places...
+          </p>
+        )}
+        {!savedSearch.search.isLoading && savedSearch.search.isFetching && (
+          <p role="status" className="text-xs text-muted-foreground">
+            Updating results...
+          </p>
         )}
         {savedSearch.search.error && (
           <p role="alert" className="ui-alert-error">

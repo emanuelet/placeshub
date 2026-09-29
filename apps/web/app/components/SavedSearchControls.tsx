@@ -1,3 +1,4 @@
+import { ChevronDown, Filter, MapPin, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import type { Collection } from '@/hooks/useCollections'
 import type { SavedSearchParams, SavedSearchResponse } from '@/hooks/useSavedSearch'
@@ -14,6 +15,41 @@ interface Props {
   collections?: Collection[]
 }
 
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  choices,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  choices: { value: string; label: string }[]
+}) {
+  return (
+    <label className="block min-w-0 space-y-1 text-xs font-semibold text-muted-foreground">
+      <span className="block">{label}</span>
+      <select
+        aria-label={label}
+        className={`ui-input min-h-10 cursor-pointer bg-surface ${value ? 'border-primary/50 text-primary' : ''}`}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {choices.map((choice) => (
+          <option key={choice.value} value={choice.value}>
+            {choice.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+const choices = (allLabel: string, values: string[] = []) => [
+  { value: '', label: allLabel },
+  ...values.map((value) => ({ value, label: value })),
+]
+
 export function SavedSearchControls({
   query,
   onQueryChange,
@@ -26,23 +62,60 @@ export function SavedSearchControls({
   collections,
 }: Props) {
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
   const update = (key: keyof SavedSearchParams, value: string) =>
     onFiltersChange({ ...filters, [key]: value || undefined })
-  const hasFilters =
-    !!query ||
-    !!filters.collectionId ||
-    !!filters.city ||
-    !!filters.country ||
-    !!filters.category ||
-    !!filters.tag ||
-    !!filters.minRating
+
+  const activeFilters = [
+    query && {
+      key: 'search',
+      label: selectedLocation ? `Location: ${selectedLocation.value}` : `Search: ${query}`,
+      clear: () => onQueryChange(''),
+    },
+    filters.collectionId && {
+      key: 'collection',
+      label: `Collection: ${collections?.find((item) => item.id === filters.collectionId)?.title ?? filters.collectionId}`,
+      clear: () => update('collectionId', ''),
+    },
+    filters.city && {
+      key: 'city',
+      label: `City: ${filters.city}`,
+      clear: () => update('city', ''),
+    },
+    filters.country && {
+      key: 'country',
+      label: `Country: ${filters.country}`,
+      clear: () => update('country', ''),
+    },
+    filters.category && {
+      key: 'category',
+      label: `Category: ${filters.category}`,
+      clear: () => update('category', ''),
+    },
+    filters.tag && { key: 'tag', label: `Tag: ${filters.tag}`, clear: () => update('tag', '') },
+    filters.minRating && {
+      key: 'rating',
+      label: `Rating: ${filters.minRating}+`,
+      clear: () => update('minRating', ''),
+    },
+  ].filter((filter): filter is { key: string; label: string; clear: () => void } => !!filter)
 
   return (
-    <div className="space-y-2">
+    <section
+      aria-label="Find saved places"
+      className="space-y-3 rounded-panel border bg-muted/40 p-3 shadow-sm sm:p-4"
+    >
       <div className="relative">
-        <label htmlFor="saved-search" className="text-xs font-medium">
+        <label
+          htmlFor="saved-search"
+          className="mb-1.5 block text-xs font-semibold text-foreground"
+        >
           Search saved places
         </label>
+        <Search
+          className="pointer-events-none absolute top-10 left-3 h-4 w-4 text-muted-foreground"
+          aria-hidden="true"
+        />
         <input
           id="saved-search"
           type="search"
@@ -52,14 +125,11 @@ export function SavedSearchControls({
             setShowSuggestions(true)
           }}
           placeholder="Name, city or address"
-          className="ui-input"
+          className="ui-input pl-9"
           autoComplete="off"
         />
-        {selectedLocation && (
-          <p className="text-xs text-muted-foreground">Location: {selectedLocation.value}</p>
-        )}
         {showSuggestions && !selectedLocation && locations.length > 0 && (
-          <div className="absolute z-10 max-h-48 w-full overflow-y-auto rounded-control border bg-surface shadow-lg">
+          <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-control border bg-surface p-1 shadow-panel">
             {locations.map((location) => (
               <button
                 type="button"
@@ -68,152 +138,144 @@ export function SavedSearchControls({
                   onLocationSelect(location)
                   setShowSuggestions(false)
                 }}
-                className="block w-full p-2 text-left text-sm hover:bg-muted"
+                className="flex w-full items-center gap-2 rounded-control p-2 text-left text-sm hover:bg-muted"
               >
-                {location.value}{' '}
+                <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">{location.value}</span>
                 <span className="text-xs text-muted-foreground">({location.type})</span>
               </button>
             ))}
           </div>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        {collections && (
-          <label className="text-xs">
-            Collection
-            <select
-              aria-label="Collection"
-              className="ui-input"
-              value={filters.collectionId ?? ''}
-              onChange={(e) => update('collectionId', e.target.value)}
-            >
-              <option value="">All places</option>
-              {collections.map((collection) => (
-                <option key={collection.id} value={collection.id}>
-                  {collection.title}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label className="text-xs">
-          City
-          <select
-            aria-label="City"
-            className="ui-input"
-            value={filters.city ?? ''}
-            onChange={(e) => update('city', e.target.value)}
-          >
-            <option value="">All cities</option>
-            {options?.cities.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs">
-          Country
-          <select
-            aria-label="Country"
-            className="ui-input"
-            value={filters.country ?? ''}
-            onChange={(e) => update('country', e.target.value)}
-          >
-            <option value="">All countries</option>
-            {options?.countries.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs">
-          Category
-          <select
-            aria-label="Category"
-            className="ui-input"
-            value={filters.category ?? ''}
-            onChange={(e) => update('category', e.target.value)}
-          >
-            <option value="">All categories</option>
-            {options?.categories.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs">
-          Tag
-          <select
-            aria-label="Tag"
-            className="ui-input"
-            value={filters.tag ?? ''}
-            onChange={(e) => update('tag', e.target.value)}
-          >
-            <option value="">All tags</option>
-            {options?.tags.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs">
-          Minimum rating
-          <select
-            aria-label="Minimum rating"
-            className="ui-input"
-            value={filters.minRating ?? ''}
-            onChange={(e) => update('minRating', e.target.value)}
-          >
-            <option value="">Any rating</option>
-            {[1, 2, 3, 4, 5].map((value) => (
-              <option key={value} value={value}>
-                {value}+
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs">
-          Sort by
-          <select
-            aria-label="Sort by"
-            className="ui-input"
-            value={filters.sortBy ?? 'name'}
-            onChange={(e) => update('sortBy', e.target.value)}
-          >
-            <option value="name">Name</option>
-            <option value="location">Location</option>
-          </select>
-        </label>
-        <label className="text-xs">
-          Order
-          <select
-            aria-label="Order"
-            className="ui-input"
-            value={filters.sortDir ?? 'asc'}
-            onChange={(e) => update('sortDir', e.target.value)}
-          >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </label>
-      </div>
-      {hasFilters && (
+
+      <div className="flex items-center justify-between gap-2 border-t pt-3">
         <button
           type="button"
-          className="ui-button ui-button-quiet text-xs"
-          onClick={() => {
-            onQueryChange('')
-            onFiltersChange({ sortBy: filters.sortBy, sortDir: filters.sortDir })
-            setShowSuggestions(false)
-          }}
+          aria-expanded={showFilters}
+          onClick={() => setShowFilters((shown) => !shown)}
+          className="flex min-h-9 items-center gap-2 rounded-control px-1 text-sm font-semibold text-foreground hover:text-primary"
         >
-          Clear search and filters
+          <Filter className="h-4 w-4 text-primary" aria-hidden="true" />
+          Filters
+          {activeFilters.length > 0 && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+              {activeFilters.length}
+            </span>
+          )}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
         </button>
+        {activeFilters.length > 0 && (
+          <button
+            type="button"
+            className="text-xs font-semibold text-primary hover:underline"
+            onClick={() => {
+              onQueryChange('')
+              onFiltersChange({ sortBy: filters.sortBy, sortDir: filters.sortDir })
+              setShowSuggestions(false)
+            }}
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {activeFilters.length > 0 && (
+        <fieldset aria-label="Active filters" className="flex flex-wrap gap-1.5">
+          {activeFilters.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              aria-label={`Remove ${filter.key} filter`}
+              onClick={filter.clear}
+              className="inline-flex max-w-full items-center gap-1 rounded-full border border-primary/30 bg-surface px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-brand-50 dark:hover:bg-muted"
+            >
+              <span className="truncate">{filter.label}</span>
+              <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </button>
+          ))}
+        </fieldset>
       )}
-    </div>
+
+      {showFilters && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {collections && (
+              <FilterSelect
+                label="Collection"
+                value={filters.collectionId ?? ''}
+                onChange={(value) => update('collectionId', value)}
+                choices={[
+                  { value: '', label: 'All places' },
+                  ...collections.map((collection) => ({
+                    value: collection.id,
+                    label: collection.title,
+                  })),
+                ]}
+              />
+            )}
+            <FilterSelect
+              label="City"
+              value={filters.city ?? ''}
+              onChange={(value) => update('city', value)}
+              choices={choices('All cities', options?.cities)}
+            />
+            <FilterSelect
+              label="Country"
+              value={filters.country ?? ''}
+              onChange={(value) => update('country', value)}
+              choices={choices('All countries', options?.countries)}
+            />
+            <FilterSelect
+              label="Category"
+              value={filters.category ?? ''}
+              onChange={(value) => update('category', value)}
+              choices={choices('All categories', options?.categories)}
+            />
+            <FilterSelect
+              label="Tag"
+              value={filters.tag ?? ''}
+              onChange={(value) => update('tag', value)}
+              choices={choices('All tags', options?.tags)}
+            />
+            <FilterSelect
+              label="Minimum rating"
+              value={filters.minRating ?? ''}
+              onChange={(value) => update('minRating', value)}
+              choices={[
+                { value: '', label: 'Any rating' },
+                ...[1, 2, 3, 4, 5].map((value) => ({
+                  value: String(value),
+                  label: `${value}+ stars`,
+                })),
+              ]}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t pt-3 sm:gap-3">
+            <FilterSelect
+              label="Sort by"
+              value={filters.sortBy ?? 'name'}
+              onChange={(value) => update('sortBy', value)}
+              choices={[
+                { value: 'name', label: 'Name' },
+                { value: 'location', label: 'Location' },
+              ]}
+            />
+            <FilterSelect
+              label="Order"
+              value={filters.sortDir ?? 'asc'}
+              onChange={(value) => update('sortDir', value)}
+              choices={[
+                { value: 'asc', label: 'Ascending' },
+                { value: 'desc', label: 'Descending' },
+              ]}
+            />
+          </div>
+        </div>
+      )}
+    </section>
   )
 }
