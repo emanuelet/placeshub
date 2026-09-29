@@ -21,14 +21,14 @@
   },
   "dependencies": {
     "drizzle-orm": "1.0.0-rc.3",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@biomejs/biome": "*",
+    "@biomejs/biome": "^2.5.14",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "*",
+    "@types/node": "^24.13.6",
     "dotenv": "^17.4.2",
     "drizzle-kit": "1.0.0-rc.3",
-    "typescript": "*"
+    "typescript": "6.0.3"
   }
 }
