@@ -23,6 +23,34 @@ vi.mock('@/hooks/usePlaces', () => ({
   useSearchPlaces: () => ({ data: { places: [] }, isLoading: false }),
 }))
 
+vi.mock('@/hooks/useSavedPlaceSearch', () => ({
+  useSavedPlaceSearch: () => ({
+    query: '',
+    setQuery: vi.fn(),
+    selectedLocation: null,
+    selectLocation: vi.fn(),
+    locations: [],
+    filters: { sortBy: 'name', sortDir: 'asc' },
+    setFilters: vi.fn(),
+    search: {
+      data: {
+        places: savedPlaces.current
+          .filter((sp) => sp.directlySaved || (sp.syncedCollectionIds as string[]).length > 0)
+          .map((sp) => ({
+            ...(sp.place as object),
+            id: (sp.place as { id: string }).id,
+            savedPlaceId: sp.id,
+            personalNotes: sp.notes,
+            notes: sp.notes,
+          })),
+        filters: { cities: [], countries: [], categories: [], tags: [] },
+      },
+      isLoading: false,
+      error: null,
+    },
+  }),
+}))
+
 vi.mock('@/hooks/useCollections', () => ({
   useCollections: () => ({ data: { collections: [] }, isLoading: false, error: null }),
 }))

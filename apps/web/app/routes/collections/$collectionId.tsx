@@ -3,6 +3,7 @@ import { Pencil, Plus, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { PlaceDetails } from '@/components/PlaceDetails'
+import { SavedSearchControls } from '@/components/SavedSearchControls'
 import {
   useBulkRemovePlacesFromCollection,
   useCollection,
@@ -10,6 +11,7 @@ import {
   useRemovePlaceFromCollection,
   useUpdateCollection,
 } from '@/hooks/useCollections'
+import { useSavedPlaceSearch } from '@/hooks/useSavedPlaceSearch'
 import { useCreateShare } from '@/hooks/useShares'
 import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
@@ -21,6 +23,7 @@ function CollectionDetail() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { data, isLoading, error } = useCollection(collectionId, !!user)
+  const savedSearch = useSavedPlaceSearch(collectionId, !!user)
   const removePlace = useRemovePlaceFromCollection()
   const bulkRemove = useBulkRemovePlacesFromCollection()
   const updateCollection = useUpdateCollection()
@@ -36,12 +39,12 @@ function CollectionDetail() {
   const [actionError, setActionError] = useState('')
 
   const collection = data?.collection
-  const collectionPlaces = data?.places ?? []
-  const selected = collectionPlaces.find((cp) => cp.place.id === selectedId)
+  const collectionPlaces = savedSearch.search.data?.places ?? []
+  const selected = collectionPlaces.find((place) => place.id === selectedId)
 
   useEffect(() => {
-    const mapPlaces: MapPlace[] = (data?.places ?? []).flatMap((cp) => {
-      const place = toMapPlace(cp.place)
+    const mapPlaces: MapPlace[] = (savedSearch.search.data?.places ?? []).flatMap((entry) => {
+      const place = toMapPlace(entry)
       return place ? [place] : []
     })
     setPlaces(mapPlaces)
@@ -53,11 +56,31 @@ function CollectionDetail() {
     return () => {
       setOnPlaceClick(null)
     }
-  }, [data, setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo])
+  }, [savedSearch.search.data, setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo])
 
   useEffect(() => {
     setSelectedPlaceId(selectedId)
   }, [selectedId, setSelectedPlaceId])
+
+  useEffect(() => {
+    if (
+      savedSearch.search.data &&
+      selectedId &&
+      !savedSearch.search.data.places.some((place) => place.id === selectedId)
+    ) {
+      setSelectedId(null)
+    }
+  }, [savedSearch.search.data, selectedId])
+
+  useEffect(() => {
+    if (savedSearch.search.data) {
+      const visibleIds = new Set(savedSearch.search.data.places.map((place) => place.id))
+      setCheckedIds((previous) => {
+        const visible = previous.filter((id) => visibleIds.has(id))
+        return visible.length === previous.length ? previous : visible
+      })
+    }
+  }, [savedSearch.search.data])
 
   useEffect(() => () => setSelectedPlaceId(null), [setSelectedPlaceId])
 
@@ -83,7 +106,7 @@ function CollectionDetail() {
 
   const manual = !collection.syncedFromGoogle
   const allChecked =
-    collectionPlaces.length > 0 && collectionPlaces.every((cp) => checkedIds.includes(cp.place.id))
+    collectionPlaces.length > 0 && collectionPlaces.every((place) => checkedIds.includes(place.id))
 
   return (
     <div className={`grid min-h-0 gap-3 lg:h-full ${selected ? 'min-[1280px]:grid-cols-2' : ''}`}>
@@ -213,6 +236,25 @@ function CollectionDetail() {
           </div>
         </div>
 
+        <SavedSearchControls
+          query={savedSearch.query}
+          onQueryChange={savedSearch.setQuery}
+          onLocationSelect={savedSearch.selectLocation}
+          selectedLocation={savedSearch.selectedLocation}
+          locations={savedSearch.locations}
+          filters={savedSearch.filters}
+          onFiltersChange={savedSearch.setFilters}
+          options={savedSearch.search.data?.filters}
+        />
+        {savedSearch.search.isLoading && (
+          <p className="text-xs text-muted-foreground">Searching saved places...</p>
+        )}
+        {savedSearch.search.error && (
+          <p role="alert" className="ui-alert-error">
+            Couldn't search this collection: {savedSearch.search.error.message}
+          </p>
+        )}
+
         {showAddForm && manual && (
           <AddPlaceForm
             collectionId={collectionId}
@@ -288,32 +330,38 @@ function CollectionDetail() {
               type="checkbox"
               checked={allChecked}
               onChange={(event) =>
-                setCheckedIds(event.target.checked ? collectionPlaces.map((cp) => cp.place.id) : [])
+                setCheckedIds(event.target.checked ? collectionPlaces.map((place) => place.id) : [])
               }
             />
             Select all
           </label>
         )}
-        {collectionPlaces.length === 0 && (
-          <p className="ui-empty-state">No places in this collection.</p>
-        )}
+        {collectionPlaces.length === 0 &&
+          !savedSearch.search.isLoading &&
+          !savedSearch.search.error && (
+            <p className="ui-empty-state">
+              {savedSearch.hasCriteria
+                ? 'No places match your search or filters.'
+                : 'No places in this collection.'}
+            </p>
+          )}
         <div className="space-y-2">
           {collectionPlaces.map((cp) => (
             <div
-              key={cp.place.id}
-              className={`flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.place.id ? 'border-primary bg-muted' : ''}`}
+              key={cp.id}
+              className={`flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.id ? 'border-primary bg-muted' : ''}`}
             >
               {manual && (
                 <input
                   type="checkbox"
                   className="mt-2 shrink-0"
-                  aria-label={`Select ${cp.place.name}`}
-                  checked={checkedIds.includes(cp.place.id)}
+                  aria-label={`Select ${cp.name}`}
+                  checked={checkedIds.includes(cp.id)}
                   onChange={(event) =>
                     setCheckedIds((previous) =>
                       event.target.checked
-                        ? [...previous, cp.place.id]
-                        : previous.filter((id) => id !== cp.place.id),
+                        ? [...previous, cp.id]
+                        : previous.filter((id) => id !== cp.id),
                     )
                   }
                 />
@@ -321,18 +369,18 @@ function CollectionDetail() {
               <button
                 type="button"
                 className="min-w-0 flex-1 py-1 text-left"
-                aria-pressed={selectedId === cp.place.id}
+                aria-pressed={selectedId === cp.id}
                 onClick={() => {
-                  setSelectedId(cp.place.id)
-                  setSelectedPlaceId(cp.place.id)
-                  const mapPlace = toMapPlace(cp.place)
+                  setSelectedId(cp.id)
+                  setSelectedPlaceId(cp.id)
+                  const mapPlace = toMapPlace(cp)
                   if (mapPlace) flyTo(mapPlace.lat, mapPlace.lng)
                 }}
               >
-                <span className="block break-words text-sm font-medium">{cp.place.name}</span>
-                {cp.place.address && (
+                <span className="block break-words text-sm font-medium">{cp.name}</span>
+                {cp.address && (
                   <span className="mt-1 block break-words text-xs text-muted-foreground">
-                    {cp.place.address}
+                    {cp.address}
                   </span>
                 )}
                 {cp.notes && (
@@ -347,9 +395,9 @@ function CollectionDetail() {
                   onClick={async () => {
                     setActionError('')
                     try {
-                      await removePlace.mutateAsync({ collectionId, placeId: cp.place.id })
-                      setCheckedIds((ids) => ids.filter((id) => id !== cp.place.id))
-                      if (selectedId === cp.place.id) {
+                      await removePlace.mutateAsync({ collectionId, placeId: cp.id })
+                      setCheckedIds((ids) => ids.filter((id) => id !== cp.id))
+                      if (selectedId === cp.id) {
                         setSelectedId(null)
                         setSelectedPlaceId(null)
                       }
@@ -371,7 +419,7 @@ function CollectionDetail() {
       </section>
       {selected && (
         <PlaceDetails
-          place={selected.place}
+          place={selected}
           importedNotes={selected.notes}
           personalNotes={selected.personalNotes}
           savedPlaceId={selected.savedPlaceId}

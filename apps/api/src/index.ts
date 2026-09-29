@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { collections } from './routes/collections'
 import { places } from './routes/places'
+import { saved } from './routes/saved'
 import { shares } from './routes/shares'
 import { sync } from './routes/sync'
 
@@ -19,6 +20,7 @@ app.use('/*', cors())
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
 app.route('/api/places', places)
+app.route('/api/saved', saved)
 app.route('/api/collections', collections)
 app.route('/api/shares', shares)
 app.route('/api/sync', sync)
