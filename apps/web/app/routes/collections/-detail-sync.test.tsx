@@ -90,6 +90,7 @@ describe('collection interactions', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Delete collection' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Collection actions' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Share snapshot' })).toBeInTheDocument()
   })
 
@@ -100,7 +101,12 @@ describe('collection interactions', () => {
 
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add place' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Collection actions' }))
     expect(screen.getByRole('button', { name: 'Rename' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete collection' })).toBeInTheDocument()
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Rename' }), { key: 'Escape' })
+    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
   })
 
   it('opens a preselected add-place dialog for manual collections', () => {
@@ -122,6 +128,7 @@ describe('collection interactions', () => {
     )
     const Detail = (Route as unknown as { component: React.ComponentType }).component
     render(<Detail />)
+    fireEvent.click(screen.getByRole('button', { name: 'Collection actions' }))
     fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Collection title' }), {
       target: { value: 'Changed' },
@@ -130,6 +137,7 @@ describe('collection interactions', () => {
     await waitFor(() =>
       expect(rename).toHaveBeenCalledWith({ id: 'collection-1', title: 'Changed' }),
     )
+    fireEvent.click(screen.getByRole('button', { name: 'Collection actions' }))
     fireEvent.click(screen.getByRole('button', { name: 'Delete collection' }))
     await waitFor(() => expect(deleteCollection).toHaveBeenCalledWith('collection-1'))
     vi.unstubAllGlobals()

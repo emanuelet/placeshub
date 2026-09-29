@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Pencil, Plus, Share2, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { PlaceDetails } from '@/components/PlaceDetails'
 import {
@@ -34,6 +34,9 @@ function CollectionDetail() {
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
   const [actionError, setActionError] = useState('')
+  const [actionsOpen, setActionsOpen] = useState(false)
+  const actionsRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLInputElement>(null)
 
   const collection = data?.collection
   const collectionPlaces = data?.places ?? []
@@ -61,9 +64,31 @@ function CollectionDetail() {
 
   useEffect(() => () => setSelectedPlaceId(null), [setSelectedPlaceId])
 
+  useEffect(() => {
+    if (editingTitle) titleRef.current?.focus()
+  }, [editingTitle])
+
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !actionsRef.current?.contains(event.target)) {
+        setActionsOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', dismiss)
+    return () => document.removeEventListener('pointerdown', dismiss)
+  }, [])
+
   const handleShare = async () => {
     const { share } = await createShare.mutateAsync({ collectionId })
     setShareUrl(`${window.location.origin}/share/${share.slug}`)
+  }
+
+  const handleActionsKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setActionsOpen(false)
+      actionsRef.current?.querySelector('button')?.focus()
+    }
   }
 
   if (authLoading) return <div>Loading...</div>
@@ -116,6 +141,7 @@ function CollectionDetail() {
                 Collection title
               </label>
               <input
+                ref={titleRef}
                 id="edit-collection-title"
                 className="ui-input"
                 value={title}
@@ -139,66 +165,95 @@ function CollectionDetail() {
               </div>
             </form>
           ) : (
-            <div>
-              <h2 className="break-words text-lg font-bold tracking-tight">{collection.title}</h2>
-              {collection.description && (
-                <p className="break-words text-sm text-muted-foreground">
-                  {collection.description}
-                </p>
-              )}
-              {collection.syncedFromGoogle && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Synced from Google Maps. Remove places there; they update here on the next sync.
-                </p>
+            <div className="flex flex-wrap items-start gap-2">
+              <div className="min-w-32 flex-1">
+                <h2 className="break-words text-lg font-bold tracking-tight">{collection.title}</h2>
+                {collection.description && (
+                  <p className="break-words text-sm text-muted-foreground">
+                    {collection.description}
+                  </p>
+                )}
+                {collection.syncedFromGoogle && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Synced from Google Maps. Remove places there; they update here on the next sync.
+                  </p>
+                )}
+              </div>
+              {manual && (
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    className="ui-button ui-button-primary gap-1 px-2"
+                    onClick={() => setShowAddForm(true)}
+                  >
+                    <Plus className="h-4 w-4" aria-hidden="true" /> Add place
+                  </button>
+                  <div ref={actionsRef} className="relative">
+                    <button
+                      type="button"
+                      className="ui-button ui-button-secondary px-2"
+                      aria-label="Collection actions"
+                      aria-expanded={actionsOpen}
+                      aria-controls="collection-actions-menu"
+                      onClick={() => setActionsOpen((open) => !open)}
+                      onKeyDown={handleActionsKeyDown}
+                    >
+                      <Ellipsis className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    {actionsOpen && (
+                      <fieldset
+                        id="collection-actions-menu"
+                        className="ui-panel absolute right-0 z-30 mt-1 min-w-44 overflow-hidden p-1"
+                      >
+                        <legend className="sr-only">Collection actions menu</legend>
+                        <button
+                          type="button"
+                          className="ui-button ui-button-quiet w-full justify-start gap-2"
+                          onKeyDown={handleActionsKeyDown}
+                          onClick={() => {
+                            setActionsOpen(false)
+                            setTitle(collection.title)
+                            setEditingTitle(true)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" aria-hidden="true" /> Rename
+                        </button>
+                        <button
+                          type="button"
+                          className="ui-button ui-button-danger w-full justify-start gap-2"
+                          disabled={deleteCollection.isPending}
+                          onKeyDown={handleActionsKeyDown}
+                          onClick={async () => {
+                            setActionsOpen(false)
+                            if (
+                              !window.confirm(
+                                `Delete “${collection.title}”? This also invalidates its share links. Saved places remain available.`,
+                              )
+                            )
+                              return
+                            setActionError('')
+                            try {
+                              await deleteCollection.mutateAsync(collectionId)
+                              await navigate({ to: '/collections' })
+                            } catch (reason) {
+                              setActionError(
+                                reason instanceof Error
+                                  ? reason.message
+                                  : "Couldn't delete collection",
+                              )
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete collection
+                        </button>
+                      </fieldset>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}
           <div className="flex flex-wrap gap-2">
-            {manual && (
-              <>
-                <button
-                  type="button"
-                  className="ui-button ui-button-primary gap-1"
-                  onClick={() => setShowAddForm(true)}
-                >
-                  <Plus className="h-4 w-4" aria-hidden="true" /> Add place
-                </button>
-                <button
-                  type="button"
-                  className="ui-button ui-button-secondary gap-1"
-                  onClick={() => {
-                    setTitle(collection.title)
-                    setEditingTitle(true)
-                  }}
-                >
-                  <Pencil className="h-4 w-4" aria-hidden="true" /> Rename
-                </button>
-                <button
-                  type="button"
-                  className="ui-button ui-button-danger gap-1"
-                  disabled={deleteCollection.isPending}
-                  onClick={async () => {
-                    if (
-                      !window.confirm(
-                        `Delete “${collection.title}”? This also invalidates its share links. Saved places remain available.`,
-                      )
-                    )
-                      return
-                    setActionError('')
-                    try {
-                      await deleteCollection.mutateAsync(collectionId)
-                      await navigate({ to: '/collections' })
-                    } catch (reason) {
-                      setActionError(
-                        reason instanceof Error ? reason.message : "Couldn't delete collection",
-                      )
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete collection
-                </button>
-              </>
-            )}
             <button
               type="button"
               onClick={() => {
