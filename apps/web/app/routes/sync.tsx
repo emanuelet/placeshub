@@ -40,13 +40,18 @@ function SyncPage() {
     if (userId) refresh().catch((e) => setError(e.message))
   }, [userId, refresh])
 
-  if (authLoading) return <p>Loading...</p>
+  if (authLoading) return <p className="text-muted-foreground">Loading...</p>
 
   if (!user)
     return (
-      <p>
-        Sign in to <Link to="/auth/login">connect Google Maps</Link>.
-      </p>
+      <div className="ui-panel p-5">
+        <p>
+          <Link to="/auth/login" className="font-semibold text-primary underline">
+            Sign in
+          </Link>{' '}
+          to connect Google Maps.
+        </p>
+      </div>
     )
 
   const createKey = async () => {
@@ -144,14 +149,11 @@ function SyncPage() {
       </div>
       {error && <p className="ui-alert-error">{error}</p>}
       <section>
-        <h2 className="font-semibold">Extension keys</h2>
+        <h2 className="ui-section-title">Extension keys</h2>
         {connections
           .filter((c) => !c.revokedAt)
           .map((connection) => (
-            <div
-              key={connection.id}
-              className="flex items-center justify-between gap-4 border-b py-2"
-            >
+            <div key={connection.id} className="ui-list-row">
               <span>
                 Created {new Date(connection.createdAt).toLocaleString()} · Last used{' '}
                 {connection.lastUsedAt ? new Date(connection.lastUsedAt).toLocaleString() : 'never'}
@@ -169,7 +171,7 @@ function SyncPage() {
       </section>
       <section>
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold">Synced lists</h2>
+          <h2 className="ui-section-title">Synced lists</h2>
           <button
             type="button"
             className="ui-button ui-button-quiet"
@@ -179,11 +181,14 @@ function SyncPage() {
             Refresh status
           </button>
         </div>
-        {lists.length === 0 && <p>No lists synced yet.</p>}
+        {lists.length === 0 && <div className="ui-empty-state">No lists synced yet.</div>}
         {lists.map((list) => (
-          <p key={list.sourceListId}>
-            {list.title} · Last synced{' '}
-            {list.lastSyncedAt ? new Date(list.lastSyncedAt).toLocaleString() : 'never'}
+          <p key={list.sourceListId} className="ui-list-row">
+            <span className="font-medium">{list.title}</span>
+            <span className="text-muted-foreground">
+              Last synced{' '}
+              {list.lastSyncedAt ? new Date(list.lastSyncedAt).toLocaleString() : 'never'}
+            </span>
           </p>
         ))}
       </section>

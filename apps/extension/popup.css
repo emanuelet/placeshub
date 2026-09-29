@@ -1,0 +1,169 @@
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/GeistVF.woff") format("woff");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --canvas: #f7f8fc;
+  --surface: #ffffff;
+  --muted: #f0f2f7;
+  --muted-foreground: #667085;
+  --border: #dfe3eb;
+  --foreground: #172033;
+  --primary: #3155d9;
+  --primary-hover: #2747bd;
+  --primary-foreground: #ffffff;
+  --ring: #7c92ef;
+  --radius-control: 0.625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #111521;
+    --surface: #171d2b;
+    --muted: #252d3d;
+    --muted-foreground: #a9b4c7;
+    --border: #303b50;
+    --foreground: #eef2fa;
+    --primary: #8fa4ff;
+    --primary-hover: #b1c0ff;
+    --primary-foreground: #111521;
+    --ring: #aebcff;
+  }
+}
+
+body {
+  width: 340px;
+  margin: 0;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--canvas);
+  color: var(--foreground);
+  font:
+    14px / 1.5 Geist,
+    system-ui,
+    sans-serif;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header img {
+  width: 28px;
+  height: 28px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 16px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  margin: 12px 0 4px;
+  font-weight: 600;
+}
+
+input[type="url"],
+input[type="password"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+:where(button, input):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+button {
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--muted);
+}
+
+button.primary {
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+button.primary:hover {
+  background: var(--primary-hover);
+}
+
+#lists {
+  margin-top: 4px;
+}
+
+#status,
+#lastSync {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#status {
+  margin: 12px 0 0;
+}
+
+#lastSync {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--muted);
+}
+
+.list {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0;
+  font-weight: 400;
+}
+
+.list input {
+  flex: none;
+}
+
+.muted {
+  color: var(--muted-foreground);
+}

@@ -233,6 +233,9 @@ importers:
       '@placeshub/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/supabase-js':
         specifier: ^2.117.2
         version: 2.117.2

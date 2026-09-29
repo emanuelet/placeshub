@@ -2,8 +2,50 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Geist";
+  src: url("./fonts/GeistVF.woff") format("woff");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("./fonts/GeistMonoVF.woff") format("woff");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Geist, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #dfe6ff;
+  --color-brand-200: #c2cfff;
+  --color-brand-300: #8fa4ff;
+  --color-brand-400: #6f89f0;
+  --color-brand-500: #4a6be3;
+  --color-brand-600: #3155d9;
+  --color-brand-700: #2747bd;
+  --color-brand-800: #223b96;
+  --color-brand-900: #1b2d70;
+
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #ea580c;
+  --color-accent-600: #c2410c;
+  --color-accent-700: #9a3412;
+
+  --color-accent: #c2410c;
+  --color-accent-foreground: #ffffff;
+  --color-accent-hover: #9a3412;
+  --color-accent-surface: #fff7ed;
+
   --color-canvas: #f7f8fc;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
@@ -43,6 +85,10 @@
   --color-primary: #8fa4ff;
   --color-primary-foreground: #111521;
   --color-primary-hover: #b1c0ff;
+  --color-accent: #fb923c;
+  --color-accent-foreground: #1a1207;
+  --color-accent-hover: #fdba74;
+  --color-accent-surface: #2a1c10;
   --color-danger: #ff9aad;
   --color-danger-surface: #3b1d29;
   --color-success: #6ed6a3;
@@ -109,6 +155,30 @@
 
   .ui-button-danger {
     @apply text-danger hover:bg-danger-surface;
+  }
+
+  .ui-button-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent-hover;
+  }
+
+  .ui-section-title {
+    @apply text-base font-semibold tracking-tight text-foreground;
+  }
+
+  .ui-list-row {
+    @apply flex items-center justify-between gap-4 border-b py-2.5 text-sm last:border-b-0;
+  }
+
+  .ui-badge {
+    @apply inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700;
+  }
+
+  #root.dark .ui-badge {
+    @apply bg-muted text-primary;
+  }
+
+  .ui-eyebrow {
+    @apply text-sm font-semibold uppercase tracking-wider text-accent;
   }
 
   .ui-input {

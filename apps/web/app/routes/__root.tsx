@@ -1,3 +1,4 @@
+import { Logo } from '@repo/ui/logo'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
@@ -105,8 +106,8 @@ function RootLayout() {
     <>
       <div className="min-h-screen bg-canvas font-sans">
         <nav className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b bg-surface px-3 py-3 sm:px-5">
-          <Link to="/" className="mr-2 text-lg font-bold tracking-tight text-foreground">
-            PlacesHub
+          <Link to="/" aria-label="PlacesHub home" className="mr-2 text-lg text-foreground">
+            <Logo />
           </Link>
           <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 px-2">
             Dashboard
