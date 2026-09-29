@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useCollection, useRemovePlaceFromCollection } from '@/hooks/useCollections'
 import { useCreateShare } from '@/hooks/useShares'
+import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
 export const Route = createFileRoute('/collections/$collectionId')({
@@ -10,7 +11,8 @@ export const Route = createFileRoute('/collections/$collectionId')({
 
 function CollectionDetail() {
   const { collectionId } = Route.useParams()
-  const { data, isLoading, error } = useCollection(collectionId)
+  const { user, loading: authLoading } = useAuth()
+  const { data, isLoading, error } = useCollection(collectionId, !!user)
   const removePlace = useRemovePlaceFromCollection()
   const createShare = useCreateShare()
   const { setPlaces, setOnPlaceClick, flyTo } = useMapManager()
@@ -31,6 +33,19 @@ function CollectionDetail() {
   const handleShare = async () => {
     const { share } = await createShare.mutateAsync({ collectionId })
     setShareUrl(`${window.location.origin}/share/${share.slug}`)
+  }
+
+  if (authLoading) return <div>Loading...</div>
+
+  if (!user) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-2">Sign in to view this collection</h1>
+        <Link to="/auth/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -58,6 +73,11 @@ function CollectionDetail() {
           {collection.description && (
             <p className="text-sm text-muted-foreground">{collection.description}</p>
           )}
+          {collection.syncedFromGoogle && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Synced from Google Maps. Remove places there; they update here on the next sync.
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -65,7 +85,7 @@ function CollectionDetail() {
           disabled={createShare.isPending}
           className="ui-button ui-button-secondary"
         >
-          {createShare.isPending ? 'Sharing...' : 'Share'}
+          {createShare.isPending ? 'Sharing...' : 'Share snapshot'}
         </button>
       </div>
 
@@ -75,6 +95,7 @@ function CollectionDetail() {
           <a href={shareUrl} className="font-semibold text-primary hover:underline break-all">
             {shareUrl}
           </a>
+          <p className="text-xs mt-1">This snapshot does not update when the collection changes.</p>
         </div>
       )}
 
@@ -98,14 +119,40 @@ function CollectionDetail() {
                 {cp.place.address && (
                   <p className="text-xs text-muted-foreground mt-1">{cp.place.address}</p>
                 )}
+                {cp.notes && (
+                  <p className="text-xs text-muted-foreground mt-1 italic">{cp.notes}</p>
+                )}
+                {cp.place.rating != null && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ★ {cp.place.rating}
+                    {cp.place.metadata?.reviewCount != null
+                      ? ` (${cp.place.metadata.reviewCount} reviews)`
+                      : ''}
+                  </p>
+                )}
+                {cp.place.phone && (
+                  <p className="text-xs text-muted-foreground mt-1">{cp.place.phone}</p>
+                )}
+                {cp.place.website && (
+                  <a
+                    href={cp.place.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Website ↗
+                  </a>
+                )}
               </div>
-              <button
-                type="button"
-                onClick={() => removePlace.mutate({ collectionId, placeId: cp.place.id })}
-                className="ui-button ui-button-danger min-h-8 px-2 text-xs"
-              >
-                Remove
-              </button>
+              {!collection.syncedFromGoogle && (
+                <button
+                  type="button"
+                  onClick={() => removePlace.mutate({ collectionId, placeId: cp.place.id })}
+                  className="ui-button ui-button-danger min-h-8 px-2 text-xs"
+                >
+                  Remove
+                </button>
+              )}
             </div>
           </div>
         ))}

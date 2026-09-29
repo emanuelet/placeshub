@@ -1,5 +1,5 @@
 import { places, savedPlaces } from '@placeshub/db/schema'
-import { and, eq, ilike } from 'drizzle-orm'
+import { and, eq, ilike, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
@@ -37,6 +37,10 @@ placesRouter.get('/', async (c) => {
       .select({
         id: savedPlaces.id,
         notes: savedPlaces.notes,
+        directlySaved: savedPlaces.directlySaved,
+        syncedCollectionIds: sql<
+          string[]
+        >`(SELECT COALESCE(array_agg(sl.source_list_id), ARRAY[]::text[]) FROM collection_places cp INNER JOIN synced_lists sl ON cp.collection_id = sl.collection_id WHERE cp.place_id = ${places.id} AND sl.user_id = ${userId})`,
         tags: savedPlaces.tags,
         createdAt: savedPlaces.createdAt,
         place: {
@@ -51,6 +55,7 @@ placesRouter.get('/', async (c) => {
           phone: places.phone,
           website: places.website,
           rating: places.rating,
+          metadata: places.metadata,
         },
       })
       .from(savedPlaces)
@@ -130,7 +135,14 @@ placesRouter.post('/', async (c) => {
         notes: notes ?? null,
         tags: tags ?? [],
       })
-      .onConflictDoNothing()
+      .onConflictDoUpdate({
+        target: [savedPlaces.userId, savedPlaces.placeId],
+        set: {
+          directlySaved: true,
+          ...(notes !== undefined ? { notes } : {}),
+          ...(tags !== undefined ? { tags } : {}),
+        },
+      })
       .returning()
 
     return c.json({ savedPlace }, 201)

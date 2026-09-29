@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import type { Place } from './usePlaces'
 
 export interface Collection {
   id: string
@@ -9,11 +10,13 @@ export interface Collection {
   slug: string
   createdAt: string
   updatedAt: string
+  syncedFromGoogle?: boolean
 }
 
 export interface CollectionWithPlaces extends Collection {
   places: {
     sortOrder: number
+    notes: string | null
     place: {
       id: string
       googlePlaceId: string
@@ -26,25 +29,27 @@ export interface CollectionWithPlaces extends Collection {
       phone: string | null
       website: string | null
       rating: number | null
+      metadata?: Place['metadata']
     }
   }[]
 }
 
-export function useCollections() {
+export function useCollections(enabled = true) {
   return useQuery({
     queryKey: ['collections'],
     queryFn: () => api.get<{ collections: Collection[] }>('/collections'),
+    enabled,
   })
 }
 
-export function useCollection(id: string) {
+export function useCollection(id: string, enabled = true) {
   return useQuery({
     queryKey: ['collection', id],
     queryFn: () =>
       api.get<{ collection: Collection; places: CollectionWithPlaces['places'] }>(
         `/collections/${id}`,
       ),
-    enabled: !!id,
+    enabled: enabled && !!id,
   })
 }
 

@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { collections } from './routes/collections'
 import { places } from './routes/places'
 import { shares } from './routes/shares'
+import { sync } from './routes/sync'
 
 export type Bindings = {
   SUPABASE_URL: string
@@ -19,5 +20,6 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.route('/api/places', places)
 app.route('/api/collections', collections)
 app.route('/api/shares', shares)
+app.route('/api/sync', sync)
 
 export default app

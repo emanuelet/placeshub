@@ -1,4 +1,4 @@
-import { collectionPlaces, collections, places } from '@placeshub/db/schema'
+import { collectionPlaces, collections, places, syncedLists } from '@placeshub/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { getDb } from '../lib/db'
@@ -69,9 +69,16 @@ collectionsRouter.get('/:id', async (c) => {
       return c.json({ error: 'not found' }, 404)
     }
 
+    const [syncedList] = await db
+      .select({ id: syncedLists.id })
+      .from(syncedLists)
+      .where(and(eq(syncedLists.collectionId, id), eq(syncedLists.userId, userId)))
+      .limit(1)
+
     const collectionPlacesList = await db
       .select({
         sortOrder: collectionPlaces.sortOrder,
+        notes: collectionPlaces.notes,
         place: {
           id: places.id,
           googlePlaceId: places.googlePlaceId,
@@ -84,6 +91,7 @@ collectionsRouter.get('/:id', async (c) => {
           phone: places.phone,
           website: places.website,
           rating: places.rating,
+          metadata: places.metadata,
         },
       })
       .from(collectionPlaces)
@@ -91,7 +99,10 @@ collectionsRouter.get('/:id', async (c) => {
       .where(eq(collectionPlaces.collectionId, id))
       .orderBy(collectionPlaces.sortOrder)
 
-    return c.json({ collection, places: collectionPlacesList })
+    return c.json({
+      collection: { ...collection, syncedFromGoogle: !!syncedList },
+      places: collectionPlacesList,
+    })
   } finally {
     await client.end()
   }

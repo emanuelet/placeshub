@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PlacesHub Sync</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; width: 340px; margin: 16px; color: #18222c; }
+      h1 { font-size: 18px; }
+      label { display: block; margin: 12px 0 4px; }
+      input[type="url"], input[type="password"] { box-sizing: border-box; width: 100%; padding: 7px; }
+      button { margin-top: 12px; padding: 8px 12px; cursor: pointer; }
+      #status, #lastSync { white-space: pre-wrap; overflow-wrap: anywhere; }
+      .list { display: flex; align-items: baseline; gap: 8px; }
+      .list input { flex: none; }
+      .muted { color: #566473; }
+    </style>
+  </head>
+  <body>
+    <h1>PlacesHub Sync</h1>
+    <p class="muted">Sign in to Google Maps, then open Saved, one list and a place within it. The extension checks selected lists each hour while Chrome is running.</p>
+    <label for="appUrl">PlacesHub address</label>
+    <input id="appUrl" type="url" placeholder="https://your-placeshub.example" />
+    <label for="token">Extension key (from PlacesHub Sync page)</label>
+    <input id="token" type="password" autocomplete="off" />
+    <button id="connect" type="button">Connect</button>
+    <button id="disconnect" type="button">Disconnect</button>
+    <div id="lists"></div>
+    <button id="sync" type="button">Sync now</button>
+    <p id="status" role="status"></p>
+    <p id="lastSync" class="muted"></p>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

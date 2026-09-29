@@ -31,6 +31,7 @@ sharesRouter.post('/', auth, async (c) => {
       .select({
         place: places,
         sortOrder: collectionPlaces.sortOrder,
+        notes: collectionPlaces.notes,
       })
       .from(collectionPlaces)
       .innerJoin(places, eq(collectionPlaces.placeId, places.id))
@@ -48,7 +49,7 @@ sharesRouter.post('/', auth, async (c) => {
         rating: cp.place.rating,
       }
       if (includeNotes) {
-        entry.notes = cp.place.metadata
+        entry.notes = cp.notes
       }
       return entry
     })

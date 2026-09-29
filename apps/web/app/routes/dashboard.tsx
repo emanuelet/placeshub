@@ -10,8 +10,8 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function Dashboard() {
-  const { user } = useAuth()
-  const { data, isLoading, error } = useSavedPlaces()
+  const { user, loading: authLoading } = useAuth()
+  const { data, isLoading, error } = useSavedPlaces(!!user)
   const savePlace = useSavePlace()
   const { setPlaces, setOnPlaceClick, flyTo } = useMapManager()
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null)
@@ -20,20 +20,27 @@ function Dashboard() {
   const [showSaveForm, setShowSaveForm] = useState(false)
   const { data: searchData, isLoading: isSearching } = useSearchPlaces(debouncedQuery)
 
-  const savedPlaces = data?.savedPlaces ?? []
+  const savedPlaces = (data?.savedPlaces ?? []).filter(
+    (sp) => sp.directlySaved !== false || (sp.syncedCollectionIds?.length ?? 0) > 0,
+  )
+  const selectedDetails = savedPlaces.find((sp) => sp.place.id === selectedPlace?.id)?.place
   const searchResults = searchData?.places ?? []
 
   useEffect(() => {
-    const mapPlaces: MapPlace[] = (data?.savedPlaces ?? []).flatMap((sp) => {
-      const place = toMapPlace(sp.place, sp.notes)
-      return place ? [place] : []
-    })
+    const mapPlaces: MapPlace[] = (data?.savedPlaces ?? [])
+      .filter((sp) => sp.directlySaved !== false || (sp.syncedCollectionIds?.length ?? 0) > 0)
+      .flatMap((sp) => {
+        const place = toMapPlace(sp.place, sp.notes)
+        return place ? [place] : []
+      })
     setPlaces(mapPlaces)
     setOnPlaceClick((place) => {
       setSelectedPlace(place)
       flyTo(place.lat, place.lng)
     })
   }, [data, setPlaces, setOnPlaceClick, flyTo])
+
+  if (authLoading) return <div>Loading...</div>
 
   if (!user) {
     return (
@@ -114,6 +121,27 @@ function Dashboard() {
         <p className="ui-empty-state">No places saved yet.</p>
       )}
 
+      {selectedDetails && (
+        <div className="rounded-control border bg-surface p-3 text-sm space-y-1">
+          {selectedDetails.phone && <p>Phone: {selectedDetails.phone}</p>}
+          {selectedDetails.website && (
+            <a
+              className="font-semibold text-primary hover:underline"
+              href={selectedDetails.website}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Website ↗
+            </a>
+          )}
+          {selectedDetails.metadata?.hours?.map((day) => (
+            <p key={day.day}>
+              {day.day}: {day.hours}
+            </p>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-2">
         {savedPlaces.map((sp) => (
           <button
@@ -132,6 +160,14 @@ function Dashboard() {
             <p className="font-medium text-sm">{sp.place.name}</p>
             {sp.place.address && (
               <p className="text-xs text-muted-foreground mt-1">{sp.place.address}</p>
+            )}
+            {sp.place.rating != null && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ★ {sp.place.rating}
+                {sp.place.metadata?.reviewCount != null
+                  ? ` (${sp.place.metadata.reviewCount} reviews)`
+                  : ''}
+              </p>
             )}
             {sp.notes && <p className="text-xs text-muted-foreground mt-1 italic">{sp.notes}</p>}
           </button>

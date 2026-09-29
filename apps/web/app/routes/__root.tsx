@@ -114,6 +114,9 @@ function RootLayout() {
           <Link to="/collections" className="ui-button ui-button-quiet min-h-9 px-2">
             Collections
           </Link>
+          <Link to="/sync" className="ui-button ui-button-quiet min-h-9 px-2">
+            Google Sync
+          </Link>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
             <AuthNav />

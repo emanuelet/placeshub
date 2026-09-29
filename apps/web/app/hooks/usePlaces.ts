@@ -13,11 +13,22 @@ export interface Place {
   phone: string | null
   website: string | null
   rating: number | null
+  metadata?: {
+    reviewCount?: number | null
+    category?: string[]
+    hours?: { day: string; hours: string }[] | null
+    imageUrl?: string | null
+    plusCode?: string | null
+    city?: string | null
+    country?: string | null
+  } | null
 }
 
 export interface SavedPlace {
   id: string
   notes: string | null
+  directlySaved: boolean
+  syncedCollectionIds: string[]
   tags: string[] | null
   createdAt: string
   place: Place
@@ -38,10 +49,11 @@ export function toSavePlaceInput(place: Place) {
   }
 }
 
-export function useSavedPlaces() {
+export function useSavedPlaces(enabled = true) {
   return useQuery({
     queryKey: ['savedPlaces'],
     queryFn: () => api.get<{ savedPlaces: SavedPlace[] }>('/places'),
+    enabled,
   })
 }
 

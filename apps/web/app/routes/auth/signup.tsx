@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 
@@ -7,23 +7,38 @@ export const Route = createFileRoute('/auth/signup')({
 })
 
 function Signup() {
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, googleAuthEnabled } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
     try {
-      await signUp(email, password, displayName || undefined)
-      navigate({ to: '/dashboard' })
+      const signedIn = await signUp(email, password, displayName || undefined)
+      if (signedIn) navigate({ to: '/dashboard' })
+      else setSuccess('Check your email to confirm your account before signing in.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {
       setLoading(false)
     }
@@ -36,6 +51,11 @@ function Signup() {
         <p className="mb-6 text-sm text-muted-foreground">Save the places worth remembering.</p>
 
         {error && <div className="ui-alert-error mb-4">{error}</div>}
+        {success && (
+          <div role="status" className="ui-alert-success mb-4">
+            {success}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -82,21 +102,24 @@ function Signup() {
           </button>
         </form>
 
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={signInWithGoogle}
-            className="ui-button ui-button-secondary w-full"
-          >
-            Continue with Google
-          </button>
-        </div>
+        {googleAuthEnabled && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="ui-button ui-button-secondary w-full"
+            >
+              Continue with Google
+            </button>
+          </div>
+        )}
 
         <p className="mt-4 text-sm text-muted-foreground">
           Already have an account?{' '}
-          <a href="/auth/login" className="font-semibold text-primary hover:underline">
+          <Link to="/auth/login" className="font-semibold text-primary hover:underline">
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
     </div>

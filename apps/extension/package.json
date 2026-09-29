@@ -1,0 +1,13 @@
+{
+  "name": "@placeshub/extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "biome check .",
+    "lint": "biome lint .",
+    "test": "node --test parser.test.js"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "*"
+  }
+}

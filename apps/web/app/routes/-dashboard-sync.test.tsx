@@ -1,0 +1,82 @@
+import { render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { savedPlaces } = vi.hoisted(() => ({
+  savedPlaces: { current: [] as Array<Record<string, unknown>> },
+}))
+
+vi.mock('@tanstack/react-router', () => ({
+  createFileRoute: () => (opts: { component: unknown }) => opts,
+  Link: ({ children }: { children: React.ReactNode }) => children,
+}))
+
+vi.mock('usehooks-ts', () => ({ useDebounceValue: (value: string) => [value] }))
+
+vi.mock('@/hooks/usePlaces', () => ({
+  toSavePlaceInput: vi.fn(),
+  useSavedPlaces: () => ({
+    data: { savedPlaces: savedPlaces.current },
+    isLoading: false,
+    error: null,
+  }),
+  useSavePlace: () => ({ mutateAsync: vi.fn(), isPending: false, isError: false }),
+  useSearchPlaces: () => ({ data: { places: [] }, isLoading: false }),
+}))
+
+vi.mock('@/lib/auth', () => ({ useAuth: () => ({ user: { id: 'user-1' } }) }))
+
+vi.mock('@/lib/mapContext', () => ({
+  toMapPlace: (place: { id: string; name: string; lat: number; lng: number }) => place,
+  useMapManager: () => ({ setPlaces: vi.fn(), setOnPlaceClick: vi.fn(), flyTo: vi.fn() }),
+}))
+
+import { Route } from './dashboard'
+
+function savedPlace(name: string, directlySaved: boolean, syncedCollectionIds: string[]) {
+  return {
+    id: `save-${name}`,
+    notes: null,
+    directlySaved,
+    syncedCollectionIds,
+    place: {
+      id: `place-${name}`,
+      googlePlaceId: `google-${name}`,
+      name,
+      lat: 0,
+      lng: 0,
+      address: null,
+    },
+  }
+}
+
+describe('dashboard after Google-list reconciliation', () => {
+  beforeEach(() => {
+    savedPlaces.current = []
+  })
+
+  it('hides a Google-only place removed from its last collection, but retains a direct save and a place in another synced collection', () => {
+    savedPlaces.current = [
+      savedPlace('Removed from Google', false, []),
+      savedPlace('Still in another list', false, ['list-b']),
+      savedPlace('Saved directly', true, []),
+    ]
+
+    const Dashboard = (Route as unknown as { component: React.ComponentType }).component
+    render(<Dashboard />)
+
+    expect(screen.getByText('Saved Places (2)')).toBeInTheDocument()
+    expect(screen.queryByText('Removed from Google')).not.toBeInTheDocument()
+    expect(screen.getByText('Still in another list')).toBeInTheDocument()
+    expect(screen.getByText('Saved directly')).toBeInTheDocument()
+  })
+
+  it('does not hide a place saved directly after it was imported, even after its last Google membership disappears', () => {
+    savedPlaces.current = [savedPlace('Imported then saved directly', true, [])]
+
+    const Dashboard = (Route as unknown as { component: React.ComponentType }).component
+    render(<Dashboard />)
+
+    expect(screen.getByText('Saved Places (1)')).toBeInTheDocument()
+    expect(screen.getByText('Imported then saved directly')).toBeInTheDocument()
+  })
+})

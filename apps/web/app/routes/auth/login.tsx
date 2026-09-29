@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 
@@ -7,7 +7,7 @@ export const Route = createFileRoute('/auth/login')({
 })
 
 function Login() {
-  const { signIn, signInWithGoogle } = useAuth()
+  const { signIn, signInWithGoogle, googleAuthEnabled } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,6 +23,18 @@ function Login() {
       navigate({ to: '/dashboard' })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {
       setLoading(false)
     }
@@ -68,21 +80,24 @@ function Login() {
           </button>
         </form>
 
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={signInWithGoogle}
-            className="ui-button ui-button-secondary w-full"
-          >
-            Continue with Google
-          </button>
-        </div>
+        {googleAuthEnabled && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="ui-button ui-button-secondary w-full"
+            >
+              Continue with Google
+            </button>
+          </div>
+        )}
 
         <p className="mt-4 text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <a href="/auth/signup" className="font-semibold text-primary hover:underline">
+          <Link to="/auth/signup" className="font-semibold text-primary hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

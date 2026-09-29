@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "PlacesHub Google Maps Sync",
+  "description": "Synchronize your Google Maps saved lists with PlacesHub.",
+  "version": "0.1.0",
+  "permissions": ["alarms", "storage", "tabs", "webRequest", "permissions"],
+  "host_permissions": ["https://www.google.com/*"],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.google.com/maps*"],
+      "js": ["maps.js"]
+    }
+  ],
+  "action": { "default_popup": "popup.html" }
+}

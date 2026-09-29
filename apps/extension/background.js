@@ -1,0 +1,180 @@
+import { listUrl, parseList, parseLists, parsePlace, placeUrl } from './parser.js'
+
+const ALARM = 'sync-google-lists'
+const STARTUP_ALARM = 'startup-google-sync'
+const GOOGLE = 'https://www.google.com/'
+
+chrome.webRequest.onBeforeRequest.addListener(
+  async ({ url }) => {
+    const parsed = new URL(url)
+    if (parsed.pathname === '/locationhistory/preview/mas') {
+      await chrome.storage.local.set({ discoveryUrl: url })
+    } else if (
+      parsed.pathname === '/maps/preview/entitylist/getlist' &&
+      parsed.searchParams.get('pb')?.startsWith('!1m6!1s')
+    ) {
+      await chrome.storage.local.set({ listTemplate: url })
+    } else if (
+      parsed.pathname === '/maps/preview/place' &&
+      /!1s0x[0-9a-f]+:0x[0-9a-f]+/.test(parsed.searchParams.get('pb') || '')
+    ) {
+      await chrome.storage.local.set({ placeTemplate: url })
+    }
+  },
+  {
+    urls: [
+      `${GOOGLE}locationhistory/preview/mas*`,
+      `${GOOGLE}maps/preview/entitylist/getlist*`,
+      `${GOOGLE}maps/preview/place*`,
+    ],
+  },
+)
+
+async function initialize() {
+  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
+  if (!(await chrome.alarms.get(ALARM))) await chrome.alarms.create(ALARM, { periodInMinutes: 60 })
+}
+chrome.runtime.onInstalled.addListener(initialize)
+chrome.runtime.onStartup.addListener(async () => {
+  await initialize()
+  await chrome.alarms.create(STARTUP_ALARM, { delayInMinutes: 0.5 })
+})
+
+async function mapsTab() {
+  const [existing] = await chrome.tabs.query({ url: 'https://www.google.com/maps*' })
+  if (existing?.id) return existing.id
+  const created = await chrome.tabs.create({ url: 'https://www.google.com/maps/', active: false })
+  if (!created.id) throw new Error('Unable to open Google Maps')
+  await new Promise((resolve, reject) => {
+    const finish = (error) => {
+      clearTimeout(timeout)
+      chrome.tabs.onUpdated.removeListener(listener)
+      if (error) reject(error)
+      else resolve()
+    }
+    const listener = (id, info) => {
+      if (id === created.id && info.status === 'complete') finish()
+    }
+    const timeout = setTimeout(() => finish(new Error('Google Maps tab did not load')), 30000)
+    chrome.tabs.onUpdated.addListener(listener)
+    chrome.tabs.get(created.id).then((tab) => {
+      if (tab.status === 'complete') finish()
+    }, finish)
+  })
+  return created.id
+}
+
+async function readGoogle(tabId, urls) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const reply = await chrome.tabs.sendMessage(tabId, { type: 'READ_GOOGLE', urls })
+      if (reply?.error) throw new Error(reply.error)
+      if (reply?.responses?.length !== urls.length) throw new Error('Missing Google response')
+      return reply.responses
+    } catch (error) {
+      if (attempt === 4 || !String(error).includes('Receiving end does not exist')) throw error
+      await new Promise((resolve) => setTimeout(resolve, 500))
+    }
+  }
+}
+
+let running = null
+async function syncNow() {
+  if (running) return running
+  running = runSync().finally(() => {
+    running = null
+  })
+  return running
+}
+
+async function runSync() {
+  const { token, appUrl, selectedListIds, discoveryUrl, listTemplate, placeTemplate } =
+    await chrome.storage.local.get([
+      'token',
+      'appUrl',
+      'selectedListIds',
+      'discoveryUrl',
+      'listTemplate',
+      'placeTemplate',
+    ])
+  if (!token || !appUrl) throw new Error('Connect PlacesHub in the extension popup first')
+  if (!discoveryUrl || !listTemplate)
+    throw new Error('Open Google Maps → Saved and open a list to initialize sync')
+  const tabId = await mapsTab()
+  const [discovery] = await readGoogle(tabId, [discoveryUrl])
+  const lists = parseLists(discovery)
+  await chrome.storage.local.set({ availableLists: lists })
+  const selected = lists.filter(
+    (list) => !Array.isArray(selectedListIds) || selectedListIds.includes(list.sourceListId),
+  )
+  const results = []
+  for (const list of selected) {
+    try {
+      const [response] = await readGoogle(tabId, [listUrl(listTemplate, list.sourceListId)])
+      const snapshot = parseList(response, list.sourceListId, list.advertisedCount)
+      let enriched = 0
+      let detailFailures = 0
+      if (placeTemplate) {
+        for (let offset = 0; offset < snapshot.places.length; offset += 3) {
+          const batch = snapshot.places.slice(offset, offset + 3)
+          await Promise.all(
+            batch.map(async (place) => {
+              if (!place.sourcePlaceId.startsWith('maps:cid:')) return
+              try {
+                const [details] = await readGoogle(tabId, [
+                  placeUrl(placeTemplate, place.sourcePlaceId),
+                ])
+                const enrichedPlace = parsePlace(details, place.sourcePlaceId)
+                Object.assign(place, enrichedPlace, {
+                  name: enrichedPlace.name || place.name,
+                  metadata: { ...place.metadata, ...enrichedPlace.metadata },
+                })
+                enriched++
+              } catch {
+                detailFailures++
+              }
+            }),
+          )
+        }
+      }
+      const upload = await fetch(`${appUrl}/api/sync/snapshots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(snapshot),
+      })
+      if (!upload.ok) throw new Error(`PlacesHub returned ${upload.status}: ${await upload.text()}`)
+      const summary = await upload.json()
+      results.push({
+        title: list.title,
+        imported: summary.imported,
+        removed: summary.removed,
+        enriched,
+        detailFailures,
+        detailsUnavailable: !placeTemplate,
+      })
+    } catch (error) {
+      results.push({ title: list.title, error: String(error) })
+    }
+  }
+  const status = { at: new Date().toISOString(), results }
+  await chrome.storage.local.set({ lastSync: status })
+  return status
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === ALARM || alarm.name === STARTUP_ALARM)
+    syncNow().catch(async (error) => {
+      await chrome.storage.local.set({
+        lastSync: { at: new Date().toISOString(), error: String(error) },
+      })
+    })
+})
+
+chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+  if (message?.type !== 'SYNC_NOW') return
+  syncNow().then(
+    (status) => respond({ status }),
+    (error) => respond({ error: String(error) }),
+  )
+  return true
+})

@@ -1,6 +1,8 @@
 export { collectionPlaces } from './collection-places'
 export { collections } from './collections'
+export { placeSourceKeys } from './place-source-keys'
 export { places } from './places'
 export { savedPlaces } from './saved-places'
 export { shares } from './shares'
+export { syncConnections, syncedLists } from './sync-connections'
 export { users } from './users'

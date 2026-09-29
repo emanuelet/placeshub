@@ -83,7 +83,7 @@ export function buildPopupContent(place: MapPlace) {
 
   if (place.address) {
     const address = document.createElement('p')
-    address.style.cssText = 'font-size: 12px; color: #666; margin: 4px 0;'
+    address.style.cssText = 'font-size: 12px; color: var(--color-muted-foreground); margin: 4px 0;'
     address.textContent = place.address
     container.appendChild(address)
   }
@@ -123,7 +123,11 @@ function renderMarkers() {
 
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat([place.lng, place.lat])
-      .setPopup(new mapboxgl.Popup({ offset: 25 }).setDOMContent(buildPopupContent(place)))
+      .setPopup(
+        new mapboxgl.Popup({ offset: 25, className: 'placeshub-popup' }).setDOMContent(
+          buildPopupContent(place),
+        ),
+      )
 
     if (mapInstance) {
       marker.addTo(mapInstance)

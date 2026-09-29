@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useCollections, useCreateCollection } from '@/hooks/useCollections'
+import { useAuth } from '@/lib/auth'
 
 export const Route = createFileRoute('/collections/')({
   component: Collections,
@@ -8,20 +9,44 @@ export const Route = createFileRoute('/collections/')({
 
 function Collections() {
   const navigate = useNavigate()
-  const { data, isLoading, error } = useCollections()
+  const { user, loading: authLoading } = useAuth()
+  const { data, isLoading, error } = useCollections(!!user)
   const createCollection = useCreateCollection()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [formError, setFormError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title) return
-    const { collection } = await createCollection.mutateAsync({
-      title,
-      description: description || undefined,
-    })
-    navigate({ to: '/collections/$collectionId', params: { collectionId: collection.id } })
+    const trimmedTitle = title.trim()
+    if (!trimmedTitle) {
+      setFormError('Enter a collection name.')
+      return
+    }
+    setFormError('')
+    try {
+      const { collection } = await createCollection.mutateAsync({
+        title: trimmedTitle,
+        description: description.trim() || undefined,
+      })
+      navigate({ to: '/collections/$collectionId', params: { collectionId: collection.id } })
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Couldn't create collection")
+    }
+  }
+
+  if (authLoading) return <div>Loading...</div>
+
+  if (!user) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-2">Sign in to view your collections</h1>
+        <Link to="/auth/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -45,7 +70,10 @@ function Collections() {
         <h1 className="ui-page-title">Collections</h1>
         <button
           type="button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm)
+            setFormError('')
+          }}
           className="ui-button ui-button-primary"
         >
           {showForm ? 'Cancel' : '+ New Collection'}
@@ -54,6 +82,11 @@ function Collections() {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="ui-panel mb-6 space-y-4 p-4 sm:p-5">
+          {formError && (
+            <p role="alert" className="ui-alert-error">
+              {formError}
+            </p>
+          )}
           <div>
             <label htmlFor="collection-title" className="ui-field-label">
               Title
@@ -62,7 +95,10 @@ function Collections() {
               id="collection-title"
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                setFormError('')
+              }}
               className="ui-input"
               required
             />
