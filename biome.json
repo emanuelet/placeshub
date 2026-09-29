@@ -58,6 +58,7 @@
       "**",
       "!**/node_modules",
       "!**/dist",
+      "!**/app/assets/**",
       "!**/build",
       "!**/.turbo",
       "!**/*.gen.ts",

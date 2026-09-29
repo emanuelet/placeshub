@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { buildPopupContent, toMapPlace } from '@/lib/mapContext'
+
+vi.mock('mapbox-gl', () => ({ default: { accessToken: '' } }))
 
 describe('buildPopupContent', () => {
   it('renders place fields as text, not HTML', () => {
