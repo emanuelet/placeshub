@@ -21,8 +21,17 @@ export interface Place {
     plusCode?: string | null
     city?: string | null
     country?: string | null
+    postalCode?: string | null
+    state?: string | null
+    countryCode?: string | null
+    dateAdded?: string | null
+    dateUpdated?: string | null
+    businessStatus?: string | null
+    priceLevel?: string | null
   } | null
 }
+
+export type SearchPlace = Omit<Place, 'id'>
 
 export interface SavedPlace {
   id: string
@@ -34,7 +43,7 @@ export interface SavedPlace {
   place: Place
 }
 
-export function toSavePlaceInput(place: Place) {
+export function toSavePlaceInput(place: Place | SearchPlace) {
   return {
     googlePlaceId: place.googlePlaceId,
     name: place.name,
@@ -46,6 +55,7 @@ export function toSavePlaceInput(place: Place) {
     phone: place.phone ?? undefined,
     website: place.website ?? undefined,
     rating: place.rating ?? undefined,
+    metadata: place.metadata ?? undefined,
   }
 }
 
@@ -60,8 +70,9 @@ export function useSavedPlaces(enabled = true) {
 export function useSearchPlaces(query: string) {
   return useQuery({
     queryKey: ['searchPlaces', query],
-    queryFn: () => api.get<{ places: Place[] }>(`/places/search?q=${encodeURIComponent(query)}`),
-    enabled: query.length >= 2,
+    queryFn: () =>
+      api.get<{ places: SearchPlace[] }>(`/places/search?q=${encodeURIComponent(query)}`),
+    enabled: query.trim().length >= 2,
   })
 }
 
@@ -79,11 +90,16 @@ export function useSavePlace() {
       phone?: string
       website?: string
       rating?: number
-      notes?: string
+      metadata?: Place['metadata']
+      collectionId?: string
+      notes?: string | null
       tags?: string[]
-    }) => api.post<{ savedPlace: SavedPlace }>('/places', body),
-    onSuccess: () => {
+    }) => api.post<{ savedPlace: SavedPlace; place: Place }>('/places', body),
+    onSuccess: (_, body) => {
       queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      if (body.collectionId) {
+        queryClient.invalidateQueries({ queryKey: ['collection', body.collectionId] })
+      }
     },
   })
 }
@@ -91,10 +107,11 @@ export function useSavePlace() {
 export function useUpdateSavedPlace() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; notes?: string; tags?: string[] }) =>
+    mutationFn: ({ id, ...body }: { id: string; notes?: string | null; tags?: string[] }) =>
       api.patch<{ savedPlace: SavedPlace }>(`/places/${id}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      queryClient.invalidateQueries({ queryKey: ['collection'] })
     },
   })
 }

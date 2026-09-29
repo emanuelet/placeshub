@@ -28,6 +28,7 @@ interface MapManagerValue {
   mapLoaded: boolean
   setPlaces: (places: MapPlace[]) => void
   setOnPlaceClick: (handler: ((place: MapPlace) => void) | null) => void
+  setSelectedPlaceId: (id: string | null) => void
   setOnMapClick: (handler: ((lat: number, lng: number) => void) | null) => void
   flyTo: (lat: number, lng: number, zoom?: number) => void
 }
@@ -70,6 +71,7 @@ const markers: mapboxgl.Marker[] = []
 let onPlaceClickHandler: ((place: MapPlace) => void) | null = null
 let onMapClickListener: ((e: mapboxgl.MapMouseEvent) => void) | null = null
 let currentPlaces: MapPlace[] = []
+let selectedPlaceId: string | null = null
 
 export function buildPopupContent(place: MapPlace) {
   const container = document.createElement('div')
@@ -113,7 +115,9 @@ function renderMarkers() {
   markers.length = 0
 
   currentPlaces.forEach((place) => {
-    const el = document.createElement('div')
+    const el = document.createElement('button')
+    el.type = 'button'
+    el.setAttribute('aria-label', `Show ${place.name} on map`)
     el.className =
       'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-surface bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary-hover'
     el.innerHTML =
@@ -133,6 +137,16 @@ function renderMarkers() {
       marker.addTo(mapInstance)
     }
     markers.push(marker)
+  })
+  updateMarkerSelection()
+}
+
+function updateMarkerSelection() {
+  markers.forEach((marker, index) => {
+    const selected = currentPlaces[index]?.id === selectedPlaceId
+    const element = marker.getElement()
+    element.classList.toggle('placeshub-marker-selected', selected)
+    element.setAttribute('aria-pressed', String(selected))
   })
 }
 
@@ -173,12 +187,18 @@ export function MapProvider({ children }: { children: ReactNode }) {
       renderMarkers()
     })
 
+    const resizeObserver = new ResizeObserver(() => mapInstance?.resize())
+    resizeObserver.observe(container)
+
     return () => {
+      resizeObserver.disconnect()
       if (mapInstance) {
         mapInstance.remove()
         mapInstance = null
         markers.length = 0
         onMapClickListener = null
+        onPlaceClickHandler = null
+        selectedPlaceId = null
         setMapLoaded(false)
       }
     }
@@ -191,6 +211,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const setOnPlaceClick = useCallback((handler: ((place: MapPlace) => void) | null) => {
     onPlaceClickHandler = handler
+  }, [])
+
+  const setSelectedPlaceId = useCallback((id: string | null) => {
+    selectedPlaceId = id
+    updateMarkerSelection()
   }, [])
 
   const setOnMapClick = useCallback((handler: ((lat: number, lng: number) => void) | null) => {
@@ -212,7 +237,15 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   return (
     <MapManagerContext.Provider
-      value={{ containerRef, mapLoaded, setPlaces, setOnPlaceClick, setOnMapClick, flyTo }}
+      value={{
+        containerRef,
+        mapLoaded,
+        setPlaces,
+        setOnPlaceClick,
+        setSelectedPlaceId,
+        setOnMapClick,
+        flyTo,
+      }}
     >
       {children}
     </MapManagerContext.Provider>

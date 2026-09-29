@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { savedPlaces } = vi.hoisted(() => ({
@@ -23,11 +23,20 @@ vi.mock('@/hooks/usePlaces', () => ({
   useSearchPlaces: () => ({ data: { places: [] }, isLoading: false }),
 }))
 
+vi.mock('@/hooks/useCollections', () => ({
+  useCollections: () => ({ data: { collections: [] }, isLoading: false, error: null }),
+}))
+
 vi.mock('@/lib/auth', () => ({ useAuth: () => ({ user: { id: 'user-1' } }) }))
 
 vi.mock('@/lib/mapContext', () => ({
   toMapPlace: (place: { id: string; name: string; lat: number; lng: number }) => place,
-  useMapManager: () => ({ setPlaces: vi.fn(), setOnPlaceClick: vi.fn(), flyTo: vi.fn() }),
+  useMapManager: () => ({
+    setPlaces: vi.fn(),
+    setOnPlaceClick: vi.fn(),
+    setSelectedPlaceId: vi.fn(),
+    flyTo: vi.fn(),
+  }),
 }))
 
 import { Route } from './dashboard'
@@ -78,5 +87,13 @@ describe('dashboard after Google-list reconciliation', () => {
 
     expect(screen.getByText('Saved Places (1)')).toBeInTheDocument()
     expect(screen.getByText('Imported then saved directly')).toBeInTheDocument()
+  })
+
+  it('opens an add-place dialog instead of expanding an inline form', () => {
+    const Dashboard = (Route as unknown as { component: React.ComponentType }).component
+    render(<Dashboard />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add place' }))
+    expect(screen.getByRole('dialog', { name: 'Add a place' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Search Google Places' })).toBeInTheDocument()
   })
 })

@@ -1,5 +1,11 @@
-import { places, savedPlaces } from '@placeshub/db/schema'
-import { and, eq, ilike, sql } from 'drizzle-orm'
+import {
+  collectionPlaces,
+  collections,
+  places,
+  savedPlaces,
+  syncedLists,
+} from '@placeshub/db/schema'
+import { and, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
@@ -9,22 +15,84 @@ const placesRouter = new Hono<AuthEnv>()
 placesRouter.use('/*', auth)
 
 placesRouter.get('/search', async (c) => {
-  const query = c.req.query('q')
+  const query = c.req.query('q')?.trim()
   if (!query) {
     return c.json({ places: [] })
   }
-
-  const { db, client } = getDb(c.env.DATABASE_URL)
+  if (query.length > 200) {
+    return c.json({ error: 'query must be at most 200 characters' }, 400)
+  }
+  const key = c.env.GOOGLE_PLACES_API_KEY
+  if (!key) {
+    return c.json({ error: 'Google Places search is not configured' }, 503)
+  }
   try {
-    const results = await db
-      .select()
-      .from(places)
-      .where(ilike(places.name, `%${query}%`))
-      .limit(20)
-
-    return c.json({ places: results })
-  } finally {
-    await client.end()
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': key,
+        'X-Goog-FieldMask':
+          'places.id,places.displayName,places.location,places.formattedAddress,places.googleMapsUri,places.types,places.nationalPhoneNumber,places.websiteUri,places.rating,places.businessStatus,places.priceLevel,places.userRatingCount,places.regularOpeningHours.weekdayDescriptions,places.plusCode.globalCode',
+      },
+      body: JSON.stringify({ textQuery: query, pageSize: 20 }),
+    })
+    if (!response.ok) {
+      return c.json({ error: 'Google Places search failed' }, 502)
+    }
+    const data: {
+      places?: Array<{
+        id?: string
+        displayName?: { text?: string }
+        location?: { latitude?: number; longitude?: number }
+        formattedAddress?: string
+        googleMapsUri?: string
+        types?: string[]
+        nationalPhoneNumber?: string
+        websiteUri?: string
+        rating?: number
+        businessStatus?: string
+        priceLevel?: string
+        userRatingCount?: number
+        regularOpeningHours?: { weekdayDescriptions?: string[] }
+        plusCode?: { globalCode?: string }
+      }>
+    } = await response.json()
+    return c.json({
+      places: (data.places ?? [])
+        .filter((place) => place.id && place.displayName?.text)
+        .map((place) => ({
+          googlePlaceId: place.id,
+          name: place.displayName?.text,
+          lat: place.location?.latitude ?? null,
+          lng: place.location?.longitude ?? null,
+          address: place.formattedAddress ?? null,
+          googleMapsUri: place.googleMapsUri ?? null,
+          types: place.types ?? [],
+          phone: place.nationalPhoneNumber ?? null,
+          website: place.websiteUri ?? null,
+          rating: place.rating ?? null,
+          metadata: {
+            ...(place.businessStatus ? { businessStatus: place.businessStatus } : {}),
+            ...(place.priceLevel ? { priceLevel: place.priceLevel } : {}),
+            ...(place.userRatingCount != null ? { reviewCount: place.userRatingCount } : {}),
+            ...(place.plusCode?.globalCode ? { plusCode: place.plusCode.globalCode } : {}),
+            ...(place.regularOpeningHours?.weekdayDescriptions
+              ? {
+                  hours: place.regularOpeningHours.weekdayDescriptions.map((description) => {
+                    const separator = description.indexOf(':')
+                    return {
+                      day: separator < 0 ? description : description.slice(0, separator),
+                      hours: separator < 0 ? '' : description.slice(separator + 1).trim(),
+                    }
+                  }),
+                }
+              : {}),
+          },
+        })),
+    })
+  } catch {
+    return c.json({ error: 'Google Places search is unavailable' }, 502)
   }
 })
 
@@ -85,23 +153,67 @@ placesRouter.post('/', async (c) => {
     rating,
     notes,
     tags,
+    metadata,
+    collectionId,
   } = body
 
-  if (!googlePlaceId || !name) {
+  if (
+    typeof googlePlaceId !== 'string' ||
+    !googlePlaceId.trim() ||
+    typeof name !== 'string' ||
+    !name.trim()
+  ) {
     return c.json({ error: 'googlePlaceId and name are required' }, 400)
+  }
+  if (
+    collectionId != null &&
+    (typeof collectionId !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(collectionId))
+  ) {
+    return c.json({ error: 'collectionId must be a UUID' }, 400)
+  }
+  if (notes !== undefined && notes !== null && typeof notes !== 'string') {
+    return c.json({ error: 'notes must be a string or null' }, 400)
+  }
+  if (
+    tags !== undefined &&
+    (!Array.isArray(tags) || !tags.every((tag) => typeof tag === 'string'))
+  ) {
+    return c.json({ error: 'tags must be an array of strings' }, 400)
+  }
+  if (
+    [lat, lng, rating].some(
+      (value) => value != null && (typeof value !== 'number' || !Number.isFinite(value)),
+    ) ||
+    (types != null &&
+      (!Array.isArray(types) || !types.every((type: unknown) => typeof type === 'string')))
+  ) {
+    return c.json({ error: 'invalid place coordinates, rating, or types' }, 400)
   }
 
   const { db, client } = getDb(c.env.DATABASE_URL)
 
   try {
-    let placeResult = await db
-      .select()
-      .from(places)
-      .where(eq(places.googlePlaceId, googlePlaceId))
-      .limit(1)
-
-    if (placeResult.length === 0) {
-      const [newPlace] = await db
+    const result = await db.transaction(async (tx) => {
+      if (collectionId) {
+        const [collection] = await tx
+          .select({ id: collections.id })
+          .from(collections)
+          .where(and(eq(collections.id, collectionId), eq(collections.userId, userId)))
+          .for('update')
+        if (!collection) return { error: 'collection not found' as const, status: 404 as const }
+        const [synced] = await tx
+          .select({ id: syncedLists.id })
+          .from(syncedLists)
+          .where(eq(syncedLists.collectionId, collectionId))
+          .limit(1)
+        if (synced)
+          return {
+            error: 'Google-synced collections cannot be edited' as const,
+            status: 403 as const,
+          }
+      }
+      const [place] = await tx
         .insert(places)
         .values({
           googlePlaceId,
@@ -114,38 +226,66 @@ placesRouter.post('/', async (c) => {
           phone,
           website,
           rating,
+          metadata,
+        })
+        .onConflictDoNothing({ target: places.googlePlaceId })
+        .returning()
+      const existingPlace =
+        place ??
+        (
+          await tx
+            .update(places)
+            .set({
+              name,
+              ...(lat != null ? { lat } : {}),
+              ...(lng != null ? { lng } : {}),
+              ...(address ? { address } : {}),
+              ...(googleMapsUri ? { googleMapsUri } : {}),
+              ...(types?.length ? { types } : {}),
+              ...(phone ? { phone } : {}),
+              ...(website ? { website } : {}),
+              ...(rating != null ? { rating } : {}),
+              ...(metadata
+                ? {
+                    metadata: sql`COALESCE(${places.metadata}, '{}'::jsonb) || ${JSON.stringify(metadata)}::jsonb`,
+                  }
+                : {}),
+              cachedAt: new Date(),
+            })
+            .where(eq(places.googlePlaceId, googlePlaceId))
+            .returning()
+        )[0]
+      if (!existingPlace) throw new Error('failed to create place')
+
+      const [savedPlace] = await tx
+        .insert(savedPlaces)
+        .values({
+          userId,
+          placeId: existingPlace.id,
+          notes: notes ?? null,
+          tags: tags ?? [],
+        })
+        .onConflictDoUpdate({
+          target: [savedPlaces.userId, savedPlaces.placeId],
+          set: {
+            directlySaved: true,
+            ...(notes !== undefined ? { notes } : {}),
+            ...(tags !== undefined ? { tags } : {}),
+          },
         })
         .returning()
-      if (!newPlace) {
-        return c.json({ error: 'failed to create place' }, 500)
+      if (collectionId) {
+        await tx
+          .insert(collectionPlaces)
+          .values({ collectionId, placeId: existingPlace.id })
+          .onConflictDoNothing({
+            target: [collectionPlaces.collectionId, collectionPlaces.placeId],
+          })
       }
-      placeResult = [newPlace]
-    }
-
-    const existingPlace = placeResult[0]
-    if (!existingPlace) {
-      return c.json({ error: 'failed to create place' }, 500)
-    }
-
-    const [savedPlace] = await db
-      .insert(savedPlaces)
-      .values({
-        userId,
-        placeId: existingPlace.id,
-        notes: notes ?? null,
-        tags: tags ?? [],
-      })
-      .onConflictDoUpdate({
-        target: [savedPlaces.userId, savedPlaces.placeId],
-        set: {
-          directlySaved: true,
-          ...(notes !== undefined ? { notes } : {}),
-          ...(tags !== undefined ? { tags } : {}),
-        },
-      })
-      .returning()
-
-    return c.json({ savedPlace }, 201)
+      return { savedPlace, place: existingPlace }
+    })
+    if ('error' in result) return c.json({ error: result.error }, result.status)
+    return c.json(result, 201)
   } finally {
     await client.end()
   }
@@ -155,13 +295,28 @@ placesRouter.patch('/:id', async (c) => {
   const userId = c.get('userId')
   const id = c.req.param('id')
   const body = await c.req.json()
+  if (body.notes !== undefined && body.notes !== null && typeof body.notes !== 'string') {
+    return c.json({ error: 'notes must be a string or null' }, 400)
+  }
+  if (
+    body.tags !== undefined &&
+    (!Array.isArray(body.tags) || !body.tags.every((tag: unknown) => typeof tag === 'string'))
+  ) {
+    return c.json({ error: 'tags must be an array of strings' }, 400)
+  }
+  if (body.notes === undefined && body.tags === undefined) {
+    return c.json({ error: 'notes or tags is required' }, 400)
+  }
 
   const { db, client } = getDb(c.env.DATABASE_URL)
 
   try {
     const [updated] = await db
       .update(savedPlaces)
-      .set({ notes: body.notes, tags: body.tags })
+      .set({
+        ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.tags !== undefined ? { tags: body.tags } : {}),
+      })
       .where(and(eq(savedPlaces.id, id), eq(savedPlaces.userId, userId)))
       .returning()
 

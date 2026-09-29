@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useCollections, useCreateCollection } from '@/hooks/useCollections'
 import { useAuth } from '@/lib/auth'
+import { useMapManager } from '@/lib/mapContext'
 
 export const Route = createFileRoute('/collections/')({
   component: Collections,
@@ -11,11 +13,29 @@ function Collections() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { data, isLoading, error } = useCollections(!!user)
+  const { setPlaces, setOnPlaceClick, setSelectedPlaceId } = useMapManager()
   const createCollection = useCreateCollection()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [formError, setFormError] = useState('')
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    setPlaces([])
+    setOnPlaceClick(null)
+    setSelectedPlaceId(null)
+  }, [setPlaces, setOnPlaceClick, setSelectedPlaceId])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog || !showForm) return
+    if (typeof dialog.showModal === 'function') dialog.showModal()
+    else dialog.setAttribute('open', '')
+    return () => {
+      if (dialog.open && typeof dialog.close === 'function') dialog.close()
+    }
+  }, [showForm])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,71 +85,91 @@ function Collections() {
   const collections = data?.collections ?? []
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="ui-page-title">Collections</h1>
         <button
           type="button"
           onClick={() => {
-            setShowForm(!showForm)
+            setShowForm(true)
             setFormError('')
           }}
-          className="ui-button ui-button-primary"
+          className="ui-button ui-button-primary gap-1"
         >
-          {showForm ? 'Cancel' : '+ New Collection'}
+          <Plus className="h-4 w-4" aria-hidden="true" /> New Collection
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="ui-panel mb-6 space-y-4 p-4 sm:p-5">
-          {formError && (
-            <p role="alert" className="ui-alert-error">
-              {formError}
-            </p>
-          )}
-          <div>
-            <label htmlFor="collection-title" className="ui-field-label">
-              Title
-            </label>
-            <input
-              id="collection-title"
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value)
-                setFormError('')
-              }}
-              className="ui-input"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="collection-description" className="ui-field-label">
-              Description
-            </label>
-            <textarea
-              id="collection-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="ui-input resize-y"
-              rows={2}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={createCollection.isPending}
-            className="ui-button ui-button-primary"
-          >
-            {createCollection.isPending ? 'Creating...' : 'Create'}
-          </button>
-        </form>
+        <dialog
+          ref={dialogRef}
+          onCancel={() => setShowForm(false)}
+          aria-labelledby="create-collection-heading"
+          className="ui-panel fixed inset-0 m-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 text-foreground backdrop:bg-black/60"
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <h2 id="create-collection-heading" className="ui-section-title">
+              New collection
+            </h2>
+            {formError && (
+              <p role="alert" className="ui-alert-error">
+                {formError}
+              </p>
+            )}
+            <div>
+              <label htmlFor="collection-title" className="ui-field-label">
+                Title
+              </label>
+              <input
+                id="collection-title"
+                type="text"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value)
+                  setFormError('')
+                }}
+                className="ui-input"
+                autoFocus
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="collection-description" className="ui-field-label">
+                Description
+              </label>
+              <textarea
+                id="collection-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="ui-input resize-y"
+                rows={2}
+              />
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className="ui-button ui-button-secondary"
+                onClick={() => setShowForm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createCollection.isPending}
+                className="ui-button ui-button-primary"
+              >
+                {createCollection.isPending ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </dialog>
       )}
 
       {collections.length === 0 && !showForm && (
         <p className="ui-empty-state">No collections yet. Create one to get started.</p>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-3">
         {collections.map((collection) => (
           <button
             key={collection.id}
@@ -140,9 +180,12 @@ function Collections() {
                 params: { collectionId: collection.id },
               })
             }
-            className="ui-panel w-full p-4 text-left transition-colors hover:bg-muted"
+            className="ui-panel block w-full min-w-0 p-4 text-left transition-colors hover:bg-muted"
           >
-            <h3 className="font-semibold">{collection.title}</h3>
+            <span className="flex flex-wrap items-center justify-between gap-2">
+              <strong className="break-words">{collection.title}</strong>
+              {collection.syncedFromGoogle && <span className="ui-badge">Google Sync</span>}
+            </span>
             {collection.description && (
               <p className="text-sm text-muted-foreground mt-1">{collection.description}</p>
             )}

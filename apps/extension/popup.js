@@ -32,8 +32,8 @@ async function refresh() {
       'selectedListIds',
       'lastSync',
     ])
-  $('appUrl').value = appUrl || ''
-  $('token').value = token || ''
+  $('connection').textContent =
+    appUrl && token ? `Connected to ${appUrl}` : 'Not connected. Open settings to connect.'
   renderLists(availableLists, selectedListIds)
   $('lastSync').textContent = lastSync
     ? `${lastSync.at}: ${
@@ -48,38 +48,12 @@ async function refresh() {
     : 'No sync yet'
 }
 
-$('connect').addEventListener('click', async () => {
+$('settings').addEventListener('click', async () => {
   try {
-    const url = new URL($('appUrl').value)
-    if (
-      !['https:', 'http:'].includes(url.protocol) ||
-      (url.protocol === 'http:' && url.hostname !== 'localhost') ||
-      url.username ||
-      url.password ||
-      url.pathname !== '/' ||
-      url.search ||
-      url.hash
-    )
-      throw new Error('Enter the PlacesHub origin only (https://host)')
-    const token = $('token').value.trim()
-    if (!/^phs_[a-f0-9-]{72}$/.test(token))
-      throw new Error('Paste the extension key from PlacesHub')
-    const granted = await chrome.permissions.request({ origins: [`${url.origin}/*`] })
-    if (!granted) throw new Error('PlacesHub site access is needed to upload lists')
-    await chrome.storage.local.set({ appUrl: url.origin, token })
-    $('status').textContent =
-      'Connected. Open Google Maps → Saved, a list and a place, then Sync now.'
+    await chrome.runtime.openOptionsPage()
   } catch (error) {
     $('status').textContent = String(error)
   }
-})
-
-$('disconnect').addEventListener('click', async () => {
-  const { appUrl } = await chrome.storage.local.get('appUrl')
-  await chrome.storage.local.remove(['token', 'appUrl'])
-  if (appUrl) await chrome.permissions.remove({ origins: [`${appUrl}/*`] })
-  $('token').value = ''
-  $('status').textContent = 'Disconnected locally. Revoke the key on PlacesHub too.'
 })
 
 $('sync').addEventListener('click', async () => {
@@ -93,4 +67,19 @@ $('sync').addEventListener('click', async () => {
   }
 })
 
-refresh()
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (
+    area === 'local' &&
+    Object.keys(changes).some((key) =>
+      ['appUrl', 'token', 'availableLists', 'selectedListIds', 'lastSync'].includes(key),
+    )
+  ) {
+    refresh().catch((error) => {
+      $('status').textContent = String(error)
+    })
+  }
+})
+
+refresh().catch((error) => {
+  $('status').textContent = String(error)
+})

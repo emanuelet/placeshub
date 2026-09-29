@@ -2,7 +2,7 @@ import { Logo } from '@repo/ui/logo'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Layers3, LayoutDashboard, Monitor, Moon, Settings2, Sun } from 'lucide-react'
 import { useEffect } from 'react'
 import { useLocalStorage, useMediaQuery } from 'usehooks-ts'
 import { AuthProvider, useAuth } from '@/lib/auth'
@@ -75,6 +75,7 @@ function AuthNav() {
 function MapLayout() {
   const { containerRef, mapLoaded } = useMapManager()
   const location = useLocation()
+  const [sidebarSide] = useLocalStorage<'left' | 'right'>('sidebar-side', 'right')
 
   const showMap =
     location.pathname === '/dashboard' ||
@@ -83,9 +84,19 @@ function MapLayout() {
     location.pathname.startsWith('/share/')
 
   return (
-    <div className="flex flex-col gap-4 lg:h-[calc(100vh-92px)] lg:flex-row">
+    <div
+      className={
+        showMap
+          ? `flex flex-col gap-4 lg:grid lg:h-[calc(100dvh-92px)] lg:min-h-[32rem] ${
+              sidebarSide === 'left'
+                ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+                : 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+            }`
+          : ''
+      }
+    >
       <div
-        className={`relative min-h-72 overflow-hidden rounded-panel lg:flex-1 ${showMap ? 'block' : 'hidden'}`}
+        className={`relative h-[38vh] min-h-72 overflow-hidden rounded-panel sm:h-[48vh] lg:h-full ${showMap ? (sidebarSide === 'left' ? 'lg:order-2' : 'lg:order-1') : 'hidden'}`}
       >
         <div ref={containerRef} className="h-full min-h-72 w-full" />
         {!mapLoaded && showMap && (
@@ -94,7 +105,13 @@ function MapLayout() {
           </div>
         )}
       </div>
-      <div className={showMap ? 'w-full lg:w-[23rem] lg:shrink-0' : 'mx-auto w-full max-w-5xl'}>
+      <div
+        className={
+          showMap
+            ? `min-w-0 lg:min-h-0 ${sidebarSide === 'left' ? 'lg:order-1' : 'lg:order-2'}`
+            : 'mx-auto w-full max-w-5xl'
+        }
+      >
         <Outlet />
       </div>
     </div>
@@ -109,21 +126,25 @@ function RootLayout() {
           <Link to="/" aria-label="PlacesHub home" className="mr-2 text-lg text-foreground">
             <Logo />
           </Link>
-          <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 px-2">
-            Dashboard
+          <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
+            <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> Dashboard
           </Link>
-          <Link to="/collections" className="ui-button ui-button-quiet min-h-9 px-2">
-            Collections
+          <Link to="/collections" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
+            <Layers3 className="h-4 w-4" aria-hidden="true" /> Collections
           </Link>
-          <Link to="/sync" className="ui-button ui-button-quiet min-h-9 px-2">
-            Google Sync
+          <Link
+            to="/settings"
+            search={{ tab: 'google-sync' }}
+            className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2"
+          >
+            <Settings2 className="h-4 w-4" aria-hidden="true" /> Settings
           </Link>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
             <AuthNav />
           </div>
         </nav>
-        <main className="mx-auto max-w-[1600px] p-3 sm:p-5">
+        <main className="w-full p-3 sm:p-5">
           <MapProvider>
             <MapLayout />
           </MapProvider>

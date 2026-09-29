@@ -9,6 +9,7 @@ export type Bindings = {
   SUPABASE_URL: string
   SUPABASE_KEY: string
   DATABASE_URL: string
+  GOOGLE_PLACES_API_KEY?: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()

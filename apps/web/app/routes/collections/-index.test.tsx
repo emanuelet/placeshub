@@ -16,6 +16,14 @@ vi.mock('@/lib/auth', () => ({
   useAuth: () => ({ user: authState.loggedIn ? { id: 'user-1' } : null, loading: false }),
 }))
 
+vi.mock('@/lib/mapContext', () => ({
+  useMapManager: () => ({
+    setPlaces: vi.fn(),
+    setOnPlaceClick: vi.fn(),
+    setSelectedPlaceId: vi.fn(),
+  }),
+}))
+
 vi.mock('@/hooks/useCollections', () => ({
   useCollections: () => ({
     data: authState.queryFailure ? undefined : { collections: [] },
@@ -57,7 +65,7 @@ describe('Collections route', () => {
     const Collections = (Route as unknown as { component: React.ComponentType }).component
     render(<Collections />)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ New Collection' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New Collection' }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), {
       target: { value: 'Coffee' },
     })

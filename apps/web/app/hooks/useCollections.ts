@@ -10,13 +10,15 @@ export interface Collection {
   slug: string
   createdAt: string
   updatedAt: string
-  syncedFromGoogle?: boolean
+  syncedFromGoogle: boolean
 }
 
 export interface CollectionWithPlaces extends Collection {
   places: {
     sortOrder: number
     notes: string | null
+    savedPlaceId: string | null
+    personalNotes: string | null
     place: {
       id: string
       googlePlaceId: string
@@ -67,10 +69,11 @@ export function useCreateCollection() {
 export function useUpdateCollection() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; title?: string; description?: string }) =>
+    mutationFn: ({ id, ...body }: { id: string; title?: string; description?: string | null }) =>
       api.patch<{ collection: Collection }>(`/collections/${id}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['collection'] })
     },
   })
 }
@@ -81,6 +84,7 @@ export function useDeleteCollection() {
     mutationFn: (id: string) => api.delete<{ success: boolean }>(`/collections/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['collection'] })
     },
   })
 }
@@ -112,6 +116,19 @@ export function useRemovePlaceFromCollection() {
   return useMutation({
     mutationFn: ({ collectionId, placeId }: { collectionId: string; placeId: string }) =>
       api.delete<{ success: boolean }>(`/collections/${collectionId}/places/${placeId}`),
+    onSuccess: (_, { collectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
+    },
+  })
+}
+
+export function useBulkRemovePlacesFromCollection() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ collectionId, placeIds }: { collectionId: string; placeIds: string[] }) =>
+      api.post<{ removedCount: number }>(`/collections/${collectionId}/places/bulk-remove`, {
+        placeIds,
+      }),
     onSuccess: (_, { collectionId }) => {
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
     },

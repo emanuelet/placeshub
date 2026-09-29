@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { MapPin } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { PlaceDetails } from '@/components/PlaceDetails'
 import { useShare } from '@/hooks/useShares'
 import { type MapPlace, useMapManager } from '@/lib/mapContext'
 
@@ -10,7 +12,8 @@ export const Route = createFileRoute('/share/$slug')({
 function SharedView() {
   const { slug } = Route.useParams()
   const { data, isLoading, error } = useShare(slug)
-  const { setPlaces, setOnPlaceClick, flyTo } = useMapManager()
+  const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!data?.share) {
@@ -21,14 +24,17 @@ function SharedView() {
     const placesSnapshot = data.share.placesSnapshot as Array<{
       id: string
       name: string
-      lat: number
-      lng: number
+      lat: number | null
+      lng: number | null
       address?: string
       rating?: number
       notes?: string
     }>
     const mapPlaces: MapPlace[] = placesSnapshot.flatMap((p) =>
-      Number.isFinite(p.lat) && Number.isFinite(p.lng)
+      typeof p.lat === 'number' &&
+      Number.isFinite(p.lat) &&
+      typeof p.lng === 'number' &&
+      Number.isFinite(p.lng)
         ? [
             {
               id: p.id,
@@ -43,8 +49,21 @@ function SharedView() {
         : [],
     )
     setPlaces(mapPlaces)
-    setOnPlaceClick(null)
-  }, [data, setPlaces, setOnPlaceClick])
+    setOnPlaceClick((place) => {
+      setSelectedId(place.id)
+      setSelectedPlaceId(place.id)
+      flyTo(place.lat, place.lng)
+    })
+    return () => {
+      setOnPlaceClick(null)
+    }
+  }, [data, setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo])
+
+  useEffect(() => {
+    setSelectedPlaceId(selectedId)
+  }, [selectedId, setSelectedPlaceId])
+
+  useEffect(() => () => setSelectedPlaceId(null), [setSelectedPlaceId])
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -81,49 +100,76 @@ function SharedView() {
   const placesSnapshot = share.placesSnapshot as Array<{
     id: string
     name: string
-    lat: number
-    lng: number
+    lat: number | null
+    lng: number | null
     address?: string
     rating?: number
     notes?: string
     googleMapsUri?: string
   }>
+  const selected = placesSnapshot.find((place) => place.id === selectedId)
 
   return (
-    <div className="ui-panel flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-5">
-      <h2 className="text-base font-bold tracking-tight">Places ({placesSnapshot.length})</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
-        {placesSnapshot.map((p) => (
-          <div key={p.id} className="rounded-control border bg-surface p-3">
-            <p className="font-medium text-sm break-words">{p.name}</p>
-            {p.address && <p className="text-xs text-muted-foreground break-words">{p.address}</p>}
-            {p.notes && (
-              <p className="text-xs text-muted-foreground mt-1 italic whitespace-pre-wrap break-words">
-                {p.notes}
-              </p>
-            )}
-            {Number.isFinite(p.lat) && Number.isFinite(p.lng) && (
-              <button
-                type="button"
-                onClick={() => flyTo(p.lat, p.lng)}
-                className="mt-2 text-xs font-semibold text-primary hover:underline"
-              >
-                Show on map
-              </button>
-            )}
-            {p.googleMapsUri && (
-              <a
-                href={p.googleMapsUri}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 ml-3 inline-block text-xs font-semibold text-primary hover:underline"
-              >
-                View on Google Maps
-              </a>
-            )}
-          </div>
-        ))}
+    <div className={`grid min-h-0 gap-3 lg:h-full ${selected ? 'min-[1280px]:grid-cols-2' : ''}`}>
+      <div className="ui-panel flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-5">
+        <h2 className="text-base font-bold tracking-tight">Places ({placesSnapshot.length})</h2>
+        <div className="space-y-3">
+          {placesSnapshot.map((p) => (
+            <div
+              key={p.id}
+              className={`w-full rounded-control border bg-surface p-3 ${selectedId === p.id ? 'border-primary bg-muted' : ''}`}
+            >
+              <p className="font-medium text-sm break-words">{p.name}</p>
+              {p.address && (
+                <p className="text-xs text-muted-foreground break-words">{p.address}</p>
+              )}
+              {p.notes && (
+                <p className="text-xs text-muted-foreground mt-1 italic whitespace-pre-wrap break-words">
+                  {p.notes}
+                </p>
+              )}
+              {typeof p.lat === 'number' &&
+                Number.isFinite(p.lat) &&
+                typeof p.lng === 'number' &&
+                Number.isFinite(p.lng) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(p.id)
+                      setSelectedPlaceId(p.id)
+                      if (p.lat != null && p.lng != null) flyTo(p.lat, p.lng)
+                    }}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <MapPin className="h-3.5 w-3.5" aria-hidden="true" /> Show on map
+                  </button>
+                )}
+              {(p.lat == null || p.lng == null) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(p.id)
+                    setSelectedPlaceId(p.id)
+                  }}
+                  className="mt-2 text-xs font-semibold text-primary underline"
+                >
+                  Show details
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
+      {selected && (
+        <PlaceDetails
+          place={selected}
+          personalNotes={selected.notes}
+          onClose={() => {
+            setSelectedId(null)
+            setSelectedPlaceId(null)
+          }}
+        />
+      )}
     </div>
   )
 }

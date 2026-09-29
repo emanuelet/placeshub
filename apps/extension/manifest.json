@@ -12,6 +12,7 @@
   "permissions": ["alarms", "storage", "tabs", "webRequest", "permissions"],
   "host_permissions": ["https://www.google.com/*"],
   "optional_host_permissions": ["https://*/*", "http://localhost/*"],
+  "options_ui": { "page": "options.html", "open_in_tab": true },
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
     {

@@ -19,7 +19,7 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/api', () => ({ api: { get, post, delete: vi.fn() } }))
 
-import { Route } from './sync'
+import { GoogleSyncSettings } from '@/components/GoogleSyncSettings'
 
 describe('sync page interactions', () => {
   beforeEach(() => {
@@ -35,8 +35,7 @@ describe('sync page interactions', () => {
   })
 
   it('lets a signed-in user create and copy an extension key, then refresh status', async () => {
-    const Sync = (Route as unknown as { component: React.ComponentType }).component
-    render(<Sync />)
+    render(<GoogleSyncSettings />)
     await waitFor(() => expect(get).toHaveBeenCalledWith('/sync/connections'))
     fireEvent.click(screen.getByRole('button', { name: 'Create extension key' }))
     expect(await screen.findByRole('textbox', { name: 'Extension key' })).toHaveValue('phs_example')
@@ -49,8 +48,7 @@ describe('sync page interactions', () => {
 
   it('asks guests to sign in before offering key creation', () => {
     auth.signedIn = false
-    const Sync = (Route as unknown as { component: React.ComponentType }).component
-    render(<Sync />)
+    render(<GoogleSyncSettings />)
     expect(screen.getByText(/sign in to/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Create extension key' })).not.toBeInTheDocument()
     expect(get).not.toHaveBeenCalled()

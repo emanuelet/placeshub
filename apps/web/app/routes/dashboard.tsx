@@ -1,30 +1,24 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useDebounceValue } from 'usehooks-ts'
-import { toSavePlaceInput, useSavedPlaces, useSavePlace, useSearchPlaces } from '@/hooks/usePlaces'
+import { AddPlaceForm } from '@/components/AddPlaceForm'
+import { PlaceDetails } from '@/components/PlaceDetails'
+import { useSavedPlaces } from '@/hooks/usePlaces'
 import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
-export const Route = createFileRoute('/dashboard')({
-  component: Dashboard,
-})
+export const Route = createFileRoute('/dashboard')({ component: Dashboard })
 
 function Dashboard() {
   const { user, loading: authLoading } = useAuth()
   const { data, isLoading, error } = useSavedPlaces(!!user)
-  const savePlace = useSavePlace()
-  const { setPlaces, setOnPlaceClick, flyTo } = useMapManager()
-  const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedQuery] = useDebounceValue(searchQuery, 300)
-  const [showSaveForm, setShowSaveForm] = useState(false)
-  const { data: searchData, isLoading: isSearching } = useSearchPlaces(debouncedQuery)
-
+  const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
   const savedPlaces = (data?.savedPlaces ?? []).filter(
     (sp) => sp.directlySaved !== false || (sp.syncedCollectionIds?.length ?? 0) > 0,
   )
-  const selectedDetails = savedPlaces.find((sp) => sp.place.id === selectedPlace?.id)?.place
-  const searchResults = searchData?.places ?? []
+  const selected = savedPlaces.find((sp) => sp.place.id === selectedId)
 
   useEffect(() => {
     const mapPlaces: MapPlace[] = (data?.savedPlaces ?? [])
@@ -35,144 +29,111 @@ function Dashboard() {
       })
     setPlaces(mapPlaces)
     setOnPlaceClick((place) => {
-      setSelectedPlace(place)
+      setSelectedId(place.id)
+      setSelectedPlaceId(place.id)
       flyTo(place.lat, place.lng)
     })
-  }, [data, setPlaces, setOnPlaceClick, flyTo])
+    return () => {
+      setOnPlaceClick(null)
+    }
+  }, [data, setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo])
+
+  useEffect(() => {
+    setSelectedPlaceId(selectedId)
+  }, [selectedId, setSelectedPlaceId])
+
+  useEffect(() => () => setSelectedPlaceId(null), [setSelectedPlaceId])
 
   if (authLoading) return <div>Loading...</div>
-
   if (!user) {
     return (
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Sign in to view your places</h1>
+        <h1 className="mb-2 text-2xl font-bold">Sign in to view your places</h1>
         <Link to="/auth/login" className="font-semibold text-primary hover:underline">
           Sign in
         </Link>
       </div>
     )
   }
-
-  const handleSelectSearchResult = async (place: (typeof searchResults)[number]) => {
-    await savePlace.mutateAsync(toSavePlaceInput(place))
-    setSearchQuery('')
-    setShowSaveForm(false)
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (error) {
-    return (
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Couldn't load your places</h1>
-        <p className="text-muted-foreground">{error.message}</p>
-      </div>
-    )
-  }
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div className="ui-alert-error">Couldn't load your places: {error.message}</div>
 
   return (
-    <div className="ui-panel flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold tracking-tight">Saved Places ({savedPlaces.length})</h2>
-        <button
-          type="button"
-          onClick={() => setShowSaveForm(!showSaveForm)}
-          className="ui-button ui-button-quiet min-h-9 px-2"
-        >
-          {showSaveForm ? 'Cancel' : '+ Add'}
-        </button>
-      </div>
-
-      {showSaveForm && (
-        <div className="space-y-2">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for a place..."
-            className="ui-input"
-          />
-          {isSearching && <p className="text-xs text-muted-foreground">Searching...</p>}
-          {savePlace.isError && <p className="ui-alert-error text-xs">{savePlace.error.message}</p>}
-          {searchResults.length > 0 && (
-            <div className="max-h-64 divide-y overflow-y-auto rounded-control border bg-surface">
-              {searchResults.map((place) => (
-                <button
-                  key={place.googlePlaceId}
-                  type="button"
-                  disabled={savePlace.isPending}
-                  onClick={() => handleSelectSearchResult(place)}
-                  className="w-full p-3 text-left transition-colors hover:bg-muted disabled:opacity-50"
-                >
-                  <p className="font-medium text-sm">{place.name}</p>
-                  {place.address && (
-                    <p className="text-xs text-muted-foreground">{place.address}</p>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+    <div className={`grid min-h-0 gap-3 lg:h-full ${selected ? 'min-[1280px]:grid-cols-2' : ''}`}>
+      <section
+        className="ui-panel flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-5"
+        aria-label="Saved places"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-bold tracking-tight">
+            Saved Places ({savedPlaces.length})
+          </h2>
+          <button
+            type="button"
+            onClick={() => setShowAddForm(true)}
+            className="ui-button ui-button-quiet shrink-0 gap-1 px-2"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" /> Add place
+          </button>
         </div>
-      )}
-
-      {savedPlaces.length === 0 && !showSaveForm && (
-        <p className="ui-empty-state">No places saved yet.</p>
-      )}
-
-      {selectedDetails && (
-        <div className="rounded-control border bg-surface p-3 text-sm space-y-1">
-          {selectedDetails.phone && <p>Phone: {selectedDetails.phone}</p>}
-          {selectedDetails.website && (
-            <a
-              className="font-semibold text-primary hover:underline"
-              href={selectedDetails.website}
-              target="_blank"
-              rel="noreferrer"
+        {showAddForm && (
+          <AddPlaceForm
+            onAdded={(placeId) => {
+              setSelectedId(placeId)
+              setSelectedPlaceId(placeId)
+              setShowAddForm(false)
+            }}
+            onCancel={() => setShowAddForm(false)}
+          />
+        )}
+        {savedPlaces.length === 0 && !showAddForm && (
+          <p className="ui-empty-state">No places saved yet.</p>
+        )}
+        <div className="space-y-2">
+          {savedPlaces.map((sp) => (
+            <button
+              key={sp.id}
+              type="button"
+              aria-pressed={selectedId === sp.place.id}
+              onClick={() => {
+                setSelectedId(sp.place.id)
+                setSelectedPlaceId(sp.place.id)
+                const place = toMapPlace(sp.place, sp.notes)
+                if (place) flyTo(place.lat, place.lng)
+              }}
+              className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${selectedId === sp.place.id ? 'border-primary bg-muted' : ''}`}
             >
-              Website ↗
-            </a>
-          )}
-          {selectedDetails.metadata?.hours?.map((day) => (
-            <p key={day.day}>
-              {day.day}: {day.hours}
-            </p>
+              <span className="block break-words text-sm font-medium">{sp.place.name}</span>
+              {sp.place.address && (
+                <span className="mt-1 block break-words text-xs text-muted-foreground">
+                  {sp.place.address}
+                </span>
+              )}
+              {sp.place.rating != null && (
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  ★ {sp.place.rating}
+                </span>
+              )}
+              {sp.notes && (
+                <span className="mt-1 block break-words text-xs italic text-muted-foreground">
+                  {sp.notes}
+                </span>
+              )}
+            </button>
           ))}
         </div>
+      </section>
+      {selected && (
+        <PlaceDetails
+          place={selected.place}
+          personalNotes={selected.notes}
+          savedPlaceId={selected.id}
+          onClose={() => {
+            setSelectedId(null)
+            setSelectedPlaceId(null)
+          }}
+        />
       )}
-
-      <div className="space-y-2">
-        {savedPlaces.map((sp) => (
-          <button
-            key={sp.id}
-            type="button"
-            onClick={() => {
-              const place = toMapPlace(sp.place, sp.notes)
-              if (!place) return
-              setSelectedPlace(place)
-              flyTo(place.lat, place.lng)
-            }}
-            className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${
-              selectedPlace?.id === sp.place.id ? 'border-primary bg-muted' : ''
-            }`}
-          >
-            <p className="font-medium text-sm">{sp.place.name}</p>
-            {sp.place.address && (
-              <p className="text-xs text-muted-foreground mt-1">{sp.place.address}</p>
-            )}
-            {sp.place.rating != null && (
-              <p className="text-xs text-muted-foreground mt-1">
-                ★ {sp.place.rating}
-                {sp.place.metadata?.reviewCount != null
-                  ? ` (${sp.place.metadata.reviewCount} reviews)`
-                  : ''}
-              </p>
-            )}
-            {sp.notes && <p className="text-xs text-muted-foreground mt-1 italic">{sp.notes}</p>}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

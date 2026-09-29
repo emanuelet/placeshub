@@ -10,21 +10,15 @@
     <header>
       <img src="icons/icon-48.png" alt="" />
       <h1>PlacesHub Sync</h1>
+      <button id="settings" type="button" aria-label="Open settings" title="Settings">Settings</button>
     </header>
     <p class="muted">Sign in to Google Maps, then open Saved, one list and a place within it. The extension checks selected lists each hour while Chrome is running.</p>
-    <label for="appUrl">PlacesHub address</label>
-    <input id="appUrl" type="url" placeholder="https://your-placeshub.example" />
-    <label for="token">Extension key (from PlacesHub Sync page)</label>
-    <input id="token" type="password" autocomplete="off" />
-    <div class="actions">
-      <button id="connect" type="button" class="primary">Connect</button>
-      <button id="disconnect" type="button">Disconnect</button>
-    </div>
+    <p id="connection" class="muted"></p>
     <div id="lists"></div>
     <div class="actions">
       <button id="sync" type="button" class="primary">Sync now</button>
     </div>
-    <p id="status" role="status"></p>
+    <p id="status" role="status" aria-live="polite"></p>
     <p id="lastSync" class="muted"></p>
     <script src="popup.js" type="module"></script>
   </body>

@@ -97,7 +97,7 @@ async function runSync() {
       'listTemplate',
       'placeTemplate',
     ])
-  if (!token || !appUrl) throw new Error('Connect PlacesHub in the extension popup first')
+  if (!token || !appUrl) throw new Error('Connect PlacesHub in extension settings first')
   if (!discoveryUrl || !listTemplate)
     throw new Error('Open Google Maps → Saved and open a list to initialize sync')
   const tabId = await mapsTab()

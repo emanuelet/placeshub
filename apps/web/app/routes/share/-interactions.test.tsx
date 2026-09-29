@@ -28,7 +28,12 @@ vi.mock('@/hooks/useShares', () => ({
 }))
 
 vi.mock('@/lib/mapContext', () => ({
-  useMapManager: () => ({ setPlaces, setOnPlaceClick: vi.fn(), flyTo }),
+  useMapManager: () => ({
+    setPlaces,
+    setOnPlaceClick: vi.fn(),
+    setSelectedPlaceId: vi.fn(),
+    flyTo,
+  }),
 }))
 
 import { Route } from './$slug'
