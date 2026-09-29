@@ -11,4 +11,5 @@ enabled = true
 # Set via `wrangler secret put` or Cloudflare dashboard
 # DATABASE_URL = ""
 # SUPABASE_URL = ""
-# SUPABASE_KEY = ""
+# SUPABASE_KEY = ""  # Supabase anon key, not the service role key
+# GOOGLE_PLACES_API_KEY = ""
