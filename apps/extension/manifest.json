@@ -3,6 +3,12 @@
   "name": "PlacesHub Google Maps Sync",
   "description": "Synchronize your Google Maps saved lists with PlacesHub.",
   "version": "0.1.0",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": ["alarms", "storage", "tabs", "webRequest", "permissions"],
   "host_permissions": ["https://www.google.com/*"],
   "optional_host_permissions": ["https://*/*", "http://localhost/*"],
@@ -13,5 +19,13 @@
       "js": ["maps.js"]
     }
   ],
-  "action": { "default_popup": "popup.html" }
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  }
 }

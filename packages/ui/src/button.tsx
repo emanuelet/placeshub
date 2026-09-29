@@ -1,17 +1,15 @@
-'use client'
+import type { ButtonHTMLAttributes } from 'react'
 
-import type { ReactNode } from 'react'
+export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger' | 'accent'
 
-interface ButtonProps {
-  children: ReactNode
-  className?: string
-  appName: string
+export function buttonClass(variant: ButtonVariant = 'primary', className?: string) {
+  return ['ui-button', `ui-button-${variant}`, className].filter(Boolean).join(' ')
 }
 
-export const Button = ({ children, className, appName }: ButtonProps) => {
-  return (
-    <button className={className} onClick={() => alert(`Hello from your ${appName} app!`)}>
-      {children}
-    </button>
-  )
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant
+}
+
+export function Button({ variant = 'primary', className, type = 'button', ...props }: ButtonProps) {
+  return <button type={type} className={buttonClass(variant, className)} {...props} />
 }

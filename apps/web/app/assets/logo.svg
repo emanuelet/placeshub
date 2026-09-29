@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 64" width="248" height="64" role="img" aria-label="PlacesHub">
+  <rect width="64" height="64" rx="15" fill="#3155d9"/>
+  <path d="M32 53C32 53 16.5 39.5 16.5 28.5a15.5 15.5 0 0 1 31 0C47.5 39.5 32 53 32 53Z" fill="#ffffff"/>
+  <circle cx="32" cy="28.5" r="6.5" fill="#ea580c"/>
+  <text x="78" y="43" font-family="Geist, Inter, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.6" fill="#172033">Places<tspan fill="#3155d9">Hub</tspan></text>
+</svg>
