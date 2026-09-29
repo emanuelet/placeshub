@@ -1,5 +1,5 @@
 import { collections, places, savedPlaces } from '@placeshub/db/schema'
-import { and, eq, exists, ilike, or, sql } from 'drizzle-orm'
+import { and, eq, ilike, or, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { getDb } from '../lib/db'
@@ -33,11 +33,11 @@ const country = sql<string>`NULLIF(${places.metadata}->>'country', '')`
 const location = sql<string>`COALESCE(${city}, NULLIF(${places.address}, ''))`
 
 function ownedScope(userId: string, collectionId?: string) {
-  const membership = exists(
-    sql`SELECT 1 FROM collection_places cp JOIN collections c ON c.id = cp.collection_id
+  const membership = sql`EXISTS (
+    SELECT 1 FROM collection_places cp JOIN collections c ON c.id = cp.collection_id
         WHERE cp.place_id = ${places.id} AND c.user_id = ${userId}
-        ${collectionId ? sql`AND c.id = ${collectionId}` : sql``}`,
-  )
+        ${collectionId ? sql`AND c.id = ${collectionId}` : sql``}
+  )`
   return collectionId
     ? membership
     : or(and(eq(savedPlaces.userId, userId), eq(savedPlaces.directlySaved, true)), membership)
