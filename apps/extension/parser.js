@@ -45,7 +45,12 @@ function placeKey(item, lat, lng, name) {
 }
 
 export function parseList(text, sourceListId, advertisedCount = null) {
-  const payload = decodeResponse(text)
+  let payload
+  try {
+    payload = decodeResponse(text)
+  } catch {
+    throw new Error('Google list response is not JSON; no changes sent')
+  }
   const list = payload?.[0]
   if (
     !Array.isArray(list) ||
@@ -53,7 +58,14 @@ export function parseList(text, sourceListId, advertisedCount = null) {
     !Array.isArray(list[8]) ||
     !Number.isInteger(list[12])
   ) {
-    throw new Error('Google list response format changed')
+    const shape = [
+      `root ${Array.isArray(payload) ? 'array' : typeof payload}`,
+      `first ${Array.isArray(list) ? 'array' : typeof list}`,
+      `id ${list?.[0]?.[0] === sourceListId ? 'matches' : typeof list?.[0]?.[0] === 'string' ? 'differs' : 'missing'}`,
+      `places ${Array.isArray(list?.[8]) ? 'array' : typeof list?.[8]}`,
+      `count ${Number.isInteger(list?.[12]) ? 'integer' : typeof list?.[12]}`,
+    ].join(', ')
+    throw new Error(`Google list response format changed (${shape}); no changes sent`)
   }
   const title = list[4]
   if (typeof title !== 'string' || !title) throw new Error('Missing list title')
@@ -86,6 +98,7 @@ export function parseList(text, sourceListId, advertisedCount = null) {
   const expectedCount = list[12]
   if (
     places.length !== expectedCount ||
+    (expectedCount === 0 && advertisedCount === null) ||
     (advertisedCount !== null && expectedCount !== advertisedCount) ||
     new Set(places.map((place) => place.sourcePlaceId)).size !== places.length
   ) {
@@ -96,8 +109,7 @@ export function parseList(text, sourceListId, advertisedCount = null) {
   return { sourceListId, title, complete: true, expectedCount, places }
 }
 
-export function listUrl(template, sourceListId) {
-  if (!/^[\w-]{10,}$/.test(sourceListId)) throw new Error('Invalid list ID')
+export function listRequestId(template) {
   const url = new URL(template)
   if (
     url.origin !== 'https://www.google.com' ||
@@ -106,12 +118,32 @@ export function listUrl(template, sourceListId) {
     throw new Error('Invalid Google list request template')
   }
   const pb = url.searchParams.get('pb')
-  if (!pb?.startsWith('!1m6!1s')) throw new Error('Google request template changed')
+  const id = /^!1m6!1s([^!]+)/.exec(pb || '')?.[1]
+  if (!id || !/^[\w-]{10,}$/.test(id)) throw new Error('Google request template changed')
+  return id
+}
+
+export function listUrl(template, sourceListId) {
+  if (!/^[\w-]{10,}$/.test(sourceListId)) throw new Error('Invalid list ID')
+  listRequestId(template)
+  const url = new URL(template)
+  const pb = url.searchParams.get('pb')
   url.searchParams.set(
     'pb',
     pb.replace(/^(!1m6!1s)[^!]+/, (_match, prefix) => prefix + sourceListId),
   )
   return url.href
+}
+
+export function listUrlForList(captured, fallback, sourceListId) {
+  if (typeof captured === 'string') {
+    try {
+      if (listRequestId(captured) === sourceListId) return listUrl(captured, sourceListId)
+    } catch {
+      // A stale or malformed capture must not replace a valid fallback template.
+    }
+  }
+  return listUrl(fallback, sourceListId)
 }
 
 function cidFromSourceKey(sourcePlaceId) {

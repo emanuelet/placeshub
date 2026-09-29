@@ -1,8 +1,16 @@
-import { listUrl, parseList, parseLists, parsePlace, placeUrl } from './parser.js'
+import {
+  listRequestId,
+  listUrlForList,
+  parseList,
+  parseLists,
+  parsePlace,
+  placeUrl,
+} from './parser.js'
 
 const ALARM = 'sync-google-lists'
 const STARTUP_ALARM = 'startup-google-sync'
 const GOOGLE = 'https://www.google.com/'
+let listCapture = Promise.resolve()
 
 chrome.webRequest.onBeforeRequest.addListener(
   async ({ url }) => {
@@ -13,7 +21,23 @@ chrome.webRequest.onBeforeRequest.addListener(
       parsed.pathname === '/maps/preview/entitylist/getlist' &&
       parsed.searchParams.get('pb')?.startsWith('!1m6!1s')
     ) {
-      await chrome.storage.local.set({ listTemplate: url })
+      listCapture = listCapture
+        .then(async () => {
+          const id = listRequestId(url)
+          const { listTemplates } = await chrome.storage.local.get('listTemplates')
+          const previous =
+            listTemplates && typeof listTemplates === 'object' && !Array.isArray(listTemplates)
+              ? listTemplates
+              : {}
+          const recent = Object.fromEntries(Object.entries(previous).slice(-99))
+          await chrome.storage.local.set({
+            listTemplate: url,
+            listTemplates: { ...recent, [id]: url },
+          })
+        })
+        .catch(() => {
+          // Unsupported Google requests are not safe templates for other lists.
+        })
     } else if (
       parsed.pathname === '/maps/preview/place' &&
       /!1s0x[0-9a-f]+:0x[0-9a-f]+/.test(parsed.searchParams.get('pb') || '')
@@ -88,15 +112,24 @@ async function syncNow() {
 }
 
 async function runSync() {
-  const { token, appUrl, selectedListIds, discoveryUrl, listTemplate, placeTemplate } =
-    await chrome.storage.local.get([
-      'token',
-      'appUrl',
-      'selectedListIds',
-      'discoveryUrl',
-      'listTemplate',
-      'placeTemplate',
-    ])
+  await listCapture
+  const {
+    token,
+    appUrl,
+    selectedListIds,
+    discoveryUrl,
+    listTemplate,
+    listTemplates,
+    placeTemplate,
+  } = await chrome.storage.local.get([
+    'token',
+    'appUrl',
+    'selectedListIds',
+    'discoveryUrl',
+    'listTemplate',
+    'listTemplates',
+    'placeTemplate',
+  ])
   if (!token || !appUrl) throw new Error('Connect PlacesHub in extension settings first')
   if (!discoveryUrl || !listTemplate)
     throw new Error('Open Google Maps → Saved and open a list to initialize sync')
@@ -109,8 +142,19 @@ async function runSync() {
   )
   const results = []
   for (const list of selected) {
+    let requestKind = 'shared'
     try {
-      const [response] = await readGoogle(tabId, [listUrl(listTemplate, list.sourceListId)])
+      const captured = listTemplates?.[list.sourceListId]
+      if (typeof captured === 'string') {
+        try {
+          if (listRequestId(captured) === list.sourceListId) requestKind = 'list-specific'
+        } catch {
+          // A stale capture falls back to the shared request template.
+        }
+      }
+      const [response] = await readGoogle(tabId, [
+        listUrlForList(captured, listTemplate, list.sourceListId),
+      ])
       const snapshot = parseList(response, list.sourceListId, list.advertisedCount)
       let enriched = 0
       let detailFailures = 0
@@ -153,7 +197,7 @@ async function runSync() {
         detailsUnavailable: !placeTemplate,
       })
     } catch (error) {
-      results.push({ title: list.title, error: String(error) })
+      results.push({ title: list.title, error: `${String(error)} [${requestKind} request]` })
     }
   }
   const status = { at: new Date().toISOString(), results }

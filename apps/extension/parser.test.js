@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { listUrl, parseList, parseLists, parsePlace, placeUrl } from './parser.js'
+import {
+  listRequestId,
+  listUrl,
+  listUrlForList,
+  parseList,
+  parseLists,
+  parsePlace,
+  placeUrl,
+} from './parser.js'
 
 const id = 'sampleList_123456789'
 const entry = (name, pair, lat = -27.46, lng = 153.05) => [
@@ -41,11 +49,18 @@ test('reads an entire list, preserving notes and coordinates without mislabellin
 test('fails closed on an incomplete page and duplicate identities instead of deleting missing places', () => {
   assert.throws(() => parseList(response([entry('Cafe', ['1', '2'])], 2), id), /Incomplete list/)
   assert.throws(() => parseList(response([], 0), id, 2), /Incomplete list/)
+  assert.throws(() => parseList(response([], 0), id), /Incomplete list/)
+  assert.equal(parseList(response([], 0), id, 0).places.length, 0)
   assert.throws(
     () => parseList(response([entry('Cafe', ['1', '2']), entry('Cafe', ['1', '2'])]), id),
     /Incomplete list/,
   )
   assert.throws(() => parseList(")]}'\n[null]", id), /response format changed/)
+  assert.throws(() => parseList('<html>Sign in</html>', id), /not JSON; no changes sent/)
+  assert.throws(
+    () => parseList(response([entry('Cafe', ['1', '2'])]).replace(id, 'anotherList_123456'), id),
+    /id differs, places array, count integer\); no changes sent/,
+  )
 })
 
 test('replaces only the requested list ID in a captured Maps request', () => {
@@ -57,6 +72,25 @@ test('replaces only the requested list ID in a captured Maps request', () => {
   assert.throws(
     () => listUrl('https://evil.example/maps/preview/entitylist/getlist?pb=!1m6!1sa', id),
     /Invalid Google/,
+  )
+})
+
+test('prefers a list-specific captured request while rejecting stale or unrelated templates', () => {
+  const favorite = 'favoriteList_123456'
+  const base = `https://www.google.com/maps/preview/entitylist/getlist?pb=!1m6!1s${id}!2e3!4i500`
+  const own = `https://www.google.com/maps/preview/entitylist/getlist?pb=!1m6!1s${favorite}!2e4!4i500`
+  assert.equal(listRequestId(own), favorite)
+  assert.equal(
+    new URL(listUrlForList(own, base, favorite)).searchParams.get('pb'),
+    `!1m6!1s${favorite}!2e4!4i500`,
+  )
+  assert.equal(
+    new URL(listUrlForList(base, base, favorite)).searchParams.get('pb'),
+    `!1m6!1s${favorite}!2e3!4i500`,
+  )
+  assert.equal(
+    new URL(listUrlForList('https://evil.example/', base, favorite)).origin,
+    'https://www.google.com',
   )
 })
 

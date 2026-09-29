@@ -41,7 +41,7 @@ async function refresh() {
         lastSync.results
           ?.map(
             (r) =>
-              `${r.title}: ${r.error || `${r.imported} places, ${r.enriched ?? 0} enriched, ${r.removed} removed${r.detailsUnavailable ? '; open a place in Maps to enable details' : ''}${r.detailFailures ? `, ${r.detailFailures} details unavailable` : ''}`}`,
+              `${r.title}: ${r.error || `${r.imported} places, ${r.enriched ?? 0} enriched, ${r.removed} removed${r.detailsUnavailable ? '; open a place’s full detail card in Google Maps to enable enrichment' : ''}${r.detailFailures ? `, ${r.detailFailures} details unavailable` : ''}`}`,
           )
           .join('\n')
       }`
