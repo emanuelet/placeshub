@@ -5,9 +5,14 @@
   "scripts": {
     "check": "biome check .",
     "lint": "biome lint .",
-    "test": "node --test *.test.js"
+    "test": "node --test *.test.js scripts/*.test.js",
+    "build": "node scripts/package.mjs",
+    "build:chrome": "node scripts/package.mjs chrome",
+    "build:firefox": "node scripts/package.mjs firefox",
+    "lint:firefox": "web-ext lint --source-dir dist/firefox --no-input --warnings-as-errors"
   },
   "devDependencies": {
-    "@biomejs/biome": "*"
+    "@biomejs/biome": "*",
+    "web-ext": "^10.7.0"
   }
 }

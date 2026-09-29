@@ -55,10 +55,13 @@ Copy `.env.example` to the repository root `.env.local` and configure:
 - Google Places API key (`GOOGLE_PLACES_API_KEY`) with Places API (New) enabled, for server-side place search. Set it in `.env.local` for local development and as a Worker secret for deployment; never expose it through `VITE_` variables.
 - Mapbox access token
 
-## Google Maps list sync (Chrome extension)
+## Google Maps list sync (Chrome and Firefox extensions)
+
+The extension also builds for Firefox. See [extension publishing](docs/extension-publishing.md)
+for separate Chrome/Firefox packages, installation and store requirements.
 
 1. For a new database, apply `packages/db/supabase/001-initial.sql` first. Then apply `002-google-sync.sql` and `003-place-source-keys.sql` from the same directory, in order.
-2. In Chrome, open `chrome://extensions`, enable Developer mode and **Load unpacked** from `apps/extension`.
+2. Build both packages with `pnpm --filter @placeshub/extension build`. In Chrome, open `chrome://extensions`, enable Developer mode and **Load unpacked** from `apps/extension/dist/chrome`. In Firefox, open `about:debugging#/runtime/this-firefox` and load `apps/extension/dist/firefox/manifest.json` temporarily.
 3. Sign in to PlacesHub and open **Settings → Google Sync**. Create an extension key. In the extension popup, open **Settings** and enter the PlacesHub address and the key on its Options page. Keys can be revoked in PlacesHub settings.
 4. In the same browser profile, sign in to Google Maps, open **Saved**, each list you want to sync (including **Favorite places**), and one place's full details card so Maps generates list-specific and place-detail requests. Click **Sync now** in the extension. After discovery, select the lists to sync in its popup. After updating the unpacked extension, reload it in `chrome://extensions` before repeating these steps.
 

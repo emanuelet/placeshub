@@ -1,3 +1,4 @@
+const extensionApi = globalThis.browser ?? globalThis.chrome
 const $ = (id) => document.getElementById(id)
 
 function renderLists(lists, selectedListIds) {
@@ -16,7 +17,7 @@ function renderLists(lists, selectedListIds) {
     box.checked = !Array.isArray(selectedListIds) || selectedListIds.includes(list.sourceListId)
     box.addEventListener('change', async () => {
       const checked = [...container.querySelectorAll('input:checked')].map((input) => input.value)
-      await chrome.storage.local.set({ selectedListIds: checked })
+      await extensionApi.storage.local.set({ selectedListIds: checked })
     })
     label.append(box, document.createTextNode(list.title))
     container.append(label)
@@ -25,7 +26,7 @@ function renderLists(lists, selectedListIds) {
 
 async function refresh() {
   const { appUrl, token, availableLists, selectedListIds, lastSync } =
-    await chrome.storage.local.get([
+    await extensionApi.storage.local.get([
       'appUrl',
       'token',
       'availableLists',
@@ -50,7 +51,7 @@ async function refresh() {
 
 $('settings').addEventListener('click', async () => {
   try {
-    await chrome.runtime.openOptionsPage()
+    await extensionApi.runtime.openOptionsPage()
   } catch (error) {
     $('status').textContent = String(error)
   }
@@ -59,7 +60,7 @@ $('settings').addEventListener('click', async () => {
 $('sync').addEventListener('click', async () => {
   $('status').textContent = 'Checking Google Maps…'
   try {
-    const result = await chrome.runtime.sendMessage({ type: 'SYNC_NOW' })
+    const result = await extensionApi.runtime.sendMessage({ type: 'SYNC_NOW' })
     $('status').textContent = result.error || 'Sync finished; see results below.'
     await refresh()
   } catch (error) {
@@ -67,7 +68,7 @@ $('sync').addEventListener('click', async () => {
   }
 })
 
-chrome.storage.onChanged.addListener((changes, area) => {
+extensionApi.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'local' &&
     Object.keys(changes).some((key) =>

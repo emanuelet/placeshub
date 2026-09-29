@@ -14,10 +14,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  envDir: path.resolve(__dirname, "../../"),
+  envDir: path.resolve(import.meta.dirname, "../../"),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./app"),
+      "@": path.resolve(import.meta.dirname, "./app"),
     },
   },
   server: {
