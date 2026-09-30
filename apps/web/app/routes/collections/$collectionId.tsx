@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
+import { ArrowRightLeft, Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
+import { MovePlacesDialog } from '@/components/MovePlacesDialog'
 import { PlaceDetails } from '@/components/PlaceDetails'
 import { SavedSearchControls } from '@/components/SavedSearchControls'
 import {
@@ -32,6 +33,7 @@ function CollectionDetail() {
   const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedIds, setCheckedIds] = useState<string[]>([])
+  const [moveIds, setMoveIds] = useState<string[] | null>(null)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
@@ -328,6 +330,21 @@ function CollectionDetail() {
             onCancel={() => setShowAddForm(false)}
           />
         )}
+        {moveIds && manual && (
+          <MovePlacesDialog
+            collectionId={collectionId}
+            placeIds={moveIds}
+            onCancel={() => setMoveIds(null)}
+            onMoved={() => {
+              setCheckedIds((ids) => ids.filter((id) => !moveIds.includes(id)))
+              if (selectedId && moveIds.includes(selectedId)) {
+                setSelectedId(null)
+                setSelectedPlaceId(null)
+              }
+              setMoveIds(null)
+            }}
+          />
+        )}
         {shareUrl && (
           <div className="ui-alert-success">
             <p className="font-medium">Share link created:</p>
@@ -350,40 +367,50 @@ function CollectionDetail() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">Places ({collectionPlaces.length})</h3>
           {manual && checkedIds.length > 0 && (
-            <button
-              type="button"
-              className="ui-button ui-button-danger gap-1"
-              disabled={bulkRemove.isPending}
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    `Remove ${checkedIds.length} places from “${collection.title}”? Saved places will remain available.`,
+            <div className="flex flex-wrap gap-1">
+              <button
+                type="button"
+                className="ui-button ui-button-secondary gap-1"
+                onClick={() => setMoveIds([...checkedIds])}
+              >
+                <ArrowRightLeft className="h-4 w-4" aria-hidden="true" /> Move selected (
+                {checkedIds.length})
+              </button>
+              <button
+                type="button"
+                className="ui-button ui-button-danger gap-1"
+                disabled={bulkRemove.isPending}
+                onClick={async () => {
+                  if (
+                    !window.confirm(
+                      `Remove ${checkedIds.length} places from “${collection.title}”? Saved places will remain available.`,
+                    )
                   )
-                )
-                  return
-                setActionError('')
-                try {
-                  for (let offset = 0; offset < checkedIds.length; offset += 100) {
-                    await bulkRemove.mutateAsync({
-                      collectionId,
-                      placeIds: checkedIds.slice(offset, offset + 100),
-                    })
+                    return
+                  setActionError('')
+                  try {
+                    for (let offset = 0; offset < checkedIds.length; offset += 100) {
+                      await bulkRemove.mutateAsync({
+                        collectionId,
+                        placeIds: checkedIds.slice(offset, offset + 100),
+                      })
+                    }
+                    if (selectedId && checkedIds.includes(selectedId)) {
+                      setSelectedId(null)
+                      setSelectedPlaceId(null)
+                    }
+                    setCheckedIds([])
+                  } catch (reason) {
+                    setActionError(
+                      reason instanceof Error ? reason.message : "Couldn't remove places",
+                    )
                   }
-                  if (selectedId && checkedIds.includes(selectedId)) {
-                    setSelectedId(null)
-                    setSelectedPlaceId(null)
-                  }
-                  setCheckedIds([])
-                } catch (reason) {
-                  setActionError(
-                    reason instanceof Error ? reason.message : "Couldn't remove places",
-                  )
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" /> Remove selected ({checkedIds.length}
-              )
-            </button>
+                }}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" /> Remove selected (
+                {checkedIds.length})
+              </button>
+            </div>
           )}
         </div>
         {manual && collectionPlaces.length > 0 && (
@@ -428,53 +455,64 @@ function CollectionDetail() {
                   }
                 />
               )}
-              <button
-                type="button"
-                className="min-w-0 flex-1 py-1 text-left"
-                aria-pressed={selectedId === cp.id}
-                onClick={() => {
-                  setSelectedId(cp.id)
-                  setSelectedPlaceId(cp.id)
-                  const mapPlace = toMapPlace(cp)
-                  if (mapPlace) flyTo(mapPlace.lat, mapPlace.lng)
-                }}
-              >
-                <span className="block break-words text-sm font-medium">{cp.name}</span>
-                {cp.address && (
-                  <span className="mt-1 block break-words text-xs text-muted-foreground">
-                    {cp.address}
-                  </span>
-                )}
-                {cp.notes && (
-                  <span className="mt-1 block break-words text-xs italic text-muted-foreground">
-                    {cp.notes}
-                  </span>
-                )}
-              </button>
-              {manual && (
+              <div className="min-w-0 flex-1">
                 <button
                   type="button"
-                  onClick={async () => {
-                    setActionError('')
-                    try {
-                      await removePlace.mutateAsync({ collectionId, placeId: cp.id })
-                      setCheckedIds((ids) => ids.filter((id) => id !== cp.id))
-                      if (selectedId === cp.id) {
-                        setSelectedId(null)
-                        setSelectedPlaceId(null)
-                      }
-                    } catch (reason) {
-                      setActionError(
-                        reason instanceof Error ? reason.message : "Couldn't remove place",
-                      )
-                    }
+                  className="w-full py-1 text-left"
+                  aria-pressed={selectedId === cp.id}
+                  onClick={() => {
+                    setSelectedId(cp.id)
+                    setSelectedPlaceId(cp.id)
+                    const mapPlace = toMapPlace(cp)
+                    if (mapPlace) flyTo(mapPlace.lat, mapPlace.lng)
                   }}
-                  disabled={removePlace.isPending}
-                  className="ui-button ui-button-danger shrink-0 gap-1 px-2 text-xs"
                 >
-                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Remove
+                  <span className="block break-words text-sm font-medium">{cp.name}</span>
+                  {cp.address && (
+                    <span className="mt-1 block break-words text-xs text-muted-foreground">
+                      {cp.address}
+                    </span>
+                  )}
+                  {cp.notes && (
+                    <span className="mt-1 block break-words text-xs italic text-muted-foreground">
+                      {cp.notes}
+                    </span>
+                  )}
                 </button>
-              )}
+                {manual && (
+                  <div className="mt-1 flex flex-wrap justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setMoveIds([cp.id])}
+                      className="ui-button ui-button-quiet gap-1 px-2 text-xs"
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" aria-hidden="true" /> Move
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setActionError('')
+                        try {
+                          await removePlace.mutateAsync({ collectionId, placeId: cp.id })
+                          setCheckedIds((ids) => ids.filter((id) => id !== cp.id))
+                          if (selectedId === cp.id) {
+                            setSelectedId(null)
+                            setSelectedPlaceId(null)
+                          }
+                        } catch (reason) {
+                          setActionError(
+                            reason instanceof Error ? reason.message : "Couldn't remove place",
+                          )
+                        }
+                      }}
+                      disabled={removePlace.isPending}
+                      className="ui-button ui-button-danger gap-1 px-2 text-xs"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Remove
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

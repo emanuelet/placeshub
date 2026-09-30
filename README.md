@@ -67,7 +67,30 @@ for separate Chrome/Firefox packages, installation and store requirements.
 
 The extension checks selected lists every hour and shortly after Chrome starts. It uses the browser's signed-in Maps session to read Google's internal list and place-detail responses; Google cookies are never sent to PlacesHub. The extension key is stored locally and only grants snapshot imports. Places with a Maps CID are enriched with real Place IDs and available contact, rating and opening-hours data; places without a CID or whose detail request fails retain their basic list data. Imported memberships follow Google, while directly saved places and cached place rows remain after removal. List notes are stored on the collection membership, not on a user's direct-save note.
 
+In manually created collections, use **Move** on one place or select several and use **Move selected** to transfer them to another manual collection. A moved place keeps its collection note unless it is already in the destination, in which case the existing destination note remains. Synced Google collections cannot be changed this way.
+
 Google's endpoints are undocumented. An incomplete or unverifiable empty response (including a paginated list not yet supported by the captured request) is rejected rather than removing PlacesHub memberships. A response-format error shows only a structural summary (array/ID/count shape and whether a list-specific request was captured), never place data. If **Favorite places** still fails after opening it in Maps, copy that summary from the extension popup to diagnose its response. Lists without an ID in Google's discovery response cannot currently sync; in the captured sample, this includes default Saved places, while Starred places are not present. The extension displays failures and last-run results in its popup; live account/browser verification is required before relying on scheduled updates.
+
+## AI agent access (MCP)
+
+1. Apply `packages/db/supabase/004-mcp-api-keys.sql` after the earlier numbered migrations.
+2. Sign in and open **Settings → AI agents**. Create a named key, copy it once, and give it to your MCP client as `Authorization: Bearer phm_…`.
+3. Connect with Streamable HTTP at `https://<your-PlacesHub-origin>/api/mcp` (locally `http://localhost:3013/api/mcp`). Every request includes the same key; no session ID is needed.
+
+Example remote MCP client configuration (replace URL and key; keep the key outside version control):
+
+```json
+{
+  "mcpServers": {
+    "placeshub": {
+      "url": "https://<your-PlacesHub-origin>/api/mcp",
+      "headers": { "Authorization": "Bearer phm_<your-key>" }
+    }
+  }
+}
+```
+
+Tools cover Google place search; listing saved places and collections; singular and bulk save, update notes/tags, and delete saved places; creating, editing, and deleting manual collections; and singular/bulk collection membership additions and removals. Bulk calls accept 1–100 items and roll back the **entire** batch when any item is invalid, missing, unowned, or targets a Google-synced collection. `savedPlaceId` identifies a user's saved row; `placeId` identifies the shared place used in collection memberships. Deleting a saved row or a collection does not delete shared place data. Extension `phs_` keys cannot use MCP; revoke MCP keys in **Settings → AI agents**.
 
 ## Deploy
 

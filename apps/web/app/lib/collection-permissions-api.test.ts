@@ -39,6 +39,7 @@ vi.mock('../../../api/src/lib/db', () => ({
 import { collections } from '../../../api/src/routes/collections'
 
 const id = '10000000-0000-4000-8000-000000000001'
+const targetId = '30000000-0000-4000-8000-000000000003'
 const placeId = '20000000-0000-4000-8000-000000000002'
 
 async function request(path: string, method: string, body?: object) {
@@ -67,6 +68,7 @@ describe('Google-synced collection protection', () => {
     ['POST', `/${id}/places`, { placeId }],
     ['DELETE', `/${id}/places/${placeId}`, undefined],
     ['POST', `/${id}/places/bulk-remove`, { placeIds: [placeId] }],
+    ['POST', `/${id}/places/move`, { placeIds: [placeId], targetCollectionId: targetId }],
   ])('rejects %s %s without mutating records', async (method, path, body) => {
     const response = await request(path, method, body)
     expect(response.status).toBe(403)

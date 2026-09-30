@@ -10,8 +10,9 @@ The browser and extension should use the **Pages URL**, not the Worker URL.
 
 1. Create a hosted Supabase project. Apply
    `packages/db/supabase/001-initial.sql`, `002-google-sync.sql`, and
-   `003-place-source-keys.sql` in order to the **hosted** database. The local
-   `supabase/config.toml` configures local development, not hosted auth.
+   `003-place-source-keys.sql`, and `004-mcp-api-keys.sql` in order to the
+   **hosted** database. The local `supabase/config.toml` configures local
+   development, not hosted auth.
 2. Enable Places API (New) in Google Cloud and obtain a server-side API key.
    Restrict the key to that API. Obtain a public Mapbox token.
 3. Choose the production Pages URL (initially
@@ -93,6 +94,9 @@ binding are configured; they do not reach production data.
 4. In the extension's Settings, enter the **Pages origin** and a key generated
    in PlacesHub Settings → Google Sync. Then sync one Google list and check its
    result in the popup.
+5. Create an AI agent key in Settings → AI agents. A Streamable HTTP client
+   using `https://<pages-host>/api/mcp` and `Authorization: Bearer <key>` can
+   list tools without a session ID. Revoking the key blocks its next request.
 
 For local development, `pnpm dev` still uses Vite's `/api` proxy to the local
 Worker. To test the production Pages Function locally, run `pnpm dev` first and

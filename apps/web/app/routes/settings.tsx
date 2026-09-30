@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Palette, RefreshCw } from 'lucide-react'
+import { Bot, Palette, RefreshCw } from 'lucide-react'
 import { useLocalStorage } from 'usehooks-ts'
 import { GoogleSyncSettings } from '@/components/GoogleSyncSettings'
+import { McpSettings } from '@/components/McpSettings'
 
-type SettingsTab = 'google-sync' | 'appearance'
+type SettingsTab = 'google-sync' | 'appearance' | 'mcp'
 
 export const Route = createFileRoute('/settings')({
   validateSearch: (search: Record<string, unknown>): { tab: SettingsTab } => ({
-    tab: search.tab === 'appearance' ? 'appearance' : 'google-sync',
+    tab: search.tab === 'appearance' || search.tab === 'mcp' ? search.tab : 'google-sync',
   }),
   component: Settings,
 })
@@ -20,6 +21,14 @@ function Settings() {
     <div className="space-y-5">
       <h1 className="ui-page-title">Settings</h1>
       <nav className="flex flex-wrap gap-2 border-b pb-3" aria-label="Settings tabs">
+        <Link
+          to="/settings"
+          search={{ tab: 'mcp' }}
+          className={`ui-button ${tab === 'mcp' ? 'ui-button-primary' : 'ui-button-secondary'}`}
+          aria-current={tab === 'mcp' ? 'page' : undefined}
+        >
+          <Bot className="mr-1 h-4 w-4" aria-hidden="true" /> AI agents
+        </Link>
         <Link
           to="/settings"
           search={{ tab: 'google-sync' }}
@@ -39,6 +48,8 @@ function Settings() {
       </nav>
       {tab === 'google-sync' ? (
         <GoogleSyncSettings />
+      ) : tab === 'mcp' ? (
+        <McpSettings />
       ) : (
         <section className="ui-panel space-y-4 p-5" aria-labelledby="sidebar-heading">
           <h2 id="sidebar-heading" className="ui-section-title">

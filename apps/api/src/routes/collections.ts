@@ -5,7 +5,7 @@ import {
   savedPlaces,
   syncedLists,
 } from '@placeshub/db/schema'
-import { and, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
@@ -286,6 +286,82 @@ collectionsRouter.delete('/:id/places/:placeId', async (c) => {
         .returning({ id: collectionPlaces.id })
       if (!deleted.length) return { error: 'not found' as const, status: 404 as const }
       return { success: true }
+    })
+    if ('error' in result) return c.json({ error: result.error }, result.status)
+    return c.json(result)
+  } finally {
+    await client.end()
+  }
+})
+
+collectionsRouter.post('/:id/places/move', async (c) => {
+  const userId = c.get('userId')
+  const collectionId = c.req.param('id')
+  const body = await c.req.json().catch(() => null)
+  const targetCollectionId = body?.targetCollectionId
+  if (
+    !uuidPattern.test(collectionId) ||
+    typeof targetCollectionId !== 'string' ||
+    !uuidPattern.test(targetCollectionId) ||
+    targetCollectionId === collectionId ||
+    !Array.isArray(body?.placeIds) ||
+    body.placeIds.length < 1 ||
+    body.placeIds.length > 3000 ||
+    !body.placeIds.every((id: unknown) => typeof id === 'string' && uuidPattern.test(id))
+  ) {
+    return c.json({ error: 'Provide a different manual collection and 1–3000 place IDs' }, 400)
+  }
+  const placeIds: string[] = [...new Set(body.placeIds as string[])]
+  const { db, client } = getDb(c.env.DATABASE_URL)
+  try {
+    const result = await db.transaction(async (tx) => {
+      // Lock collections in a stable order so concurrent moves in opposite directions cannot deadlock.
+      for (const id of [collectionId, targetCollectionId].sort()) {
+        const error = await manualCollection(tx, id, userId)
+        if (error) return error
+      }
+      const sourceRows = await tx
+        .select({
+          placeId: collectionPlaces.placeId,
+          notes: collectionPlaces.notes,
+        })
+        .from(collectionPlaces)
+        .where(
+          and(
+            eq(collectionPlaces.collectionId, collectionId),
+            inArray(collectionPlaces.placeId, placeIds),
+          ),
+        )
+        .orderBy(collectionPlaces.sortOrder)
+        .for('update')
+      if (sourceRows.length !== placeIds.length) {
+        return { error: 'places not found in collection' as const, status: 404 as const }
+      }
+      const [last] = await tx
+        .select({ sortOrder: sql<number>`COALESCE(MAX(${collectionPlaces.sortOrder}), -1)` })
+        .from(collectionPlaces)
+        .where(eq(collectionPlaces.collectionId, targetCollectionId))
+      const added = await tx
+        .insert(collectionPlaces)
+        .values(
+          sourceRows.map((row, index) => ({
+            collectionId: targetCollectionId,
+            placeId: row.placeId,
+            notes: row.notes,
+            sortOrder: (last?.sortOrder ?? -1) + index + 1,
+          })),
+        )
+        .onConflictDoNothing({ target: [collectionPlaces.collectionId, collectionPlaces.placeId] })
+        .returning({ placeId: collectionPlaces.placeId })
+      await tx
+        .delete(collectionPlaces)
+        .where(
+          and(
+            eq(collectionPlaces.collectionId, collectionId),
+            inArray(collectionPlaces.placeId, placeIds),
+          ),
+        )
+      return { movedCount: sourceRows.length, addedCount: added.length }
     })
     if ('error' in result) return c.json({ error: result.error }, result.status)
     return c.json(result)
