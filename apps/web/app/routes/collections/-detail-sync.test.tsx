@@ -64,6 +64,37 @@ vi.mock('@/hooks/usePlaces', () => ({
   toSavePlaceInput: vi.fn(),
 }))
 
+vi.mock('@/hooks/useSavedPlaceSearch', () => ({
+  useSavedPlaceSearch: () => ({
+    query: '',
+    setQuery: vi.fn(),
+    selectedLocation: null,
+    selectLocation: vi.fn(),
+    locations: [],
+    filters: { sortBy: 'name', sortDir: 'asc' },
+    setFilters: vi.fn(),
+    search: {
+      data: {
+        places: [
+          {
+            id: 'place-1',
+            name: 'Cafe',
+            lat: 1,
+            lng: 2,
+            address: null,
+            notes: null,
+            savedPlaceId: null,
+            personalNotes: null,
+          },
+        ],
+        filters: { cities: [], countries: [], categories: [], tags: [] },
+      },
+      isLoading: false,
+      error: null,
+    },
+  }),
+}))
+
 vi.mock('@/hooks/useShares', () => ({
   useCreateShare: () => ({ mutateAsync: vi.fn(), isPending: false, isError: false }),
 }))

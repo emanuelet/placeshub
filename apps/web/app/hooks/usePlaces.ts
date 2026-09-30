@@ -97,6 +97,8 @@ export function useSavePlace() {
     }) => api.post<{ savedPlace: SavedPlace; place: Place }>('/places', body),
     onSuccess: (_, body) => {
       queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
+      queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
       if (body.collectionId) {
         queryClient.invalidateQueries({ queryKey: ['collection', body.collectionId] })
       }
@@ -111,6 +113,7 @@ export function useUpdateSavedPlace() {
       api.patch<{ savedPlace: SavedPlace }>(`/places/${id}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
       queryClient.invalidateQueries({ queryKey: ['collection'] })
     },
   })
@@ -122,6 +125,8 @@ export function useDeleteSavedPlace() {
     mutationFn: (id: string) => api.delete<{ success: boolean }>(`/places/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
+      queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
     },
   })
 }

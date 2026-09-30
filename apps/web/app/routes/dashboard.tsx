@@ -3,7 +3,9 @@ import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { PlaceDetails } from '@/components/PlaceDetails'
-import { useSavedPlaces } from '@/hooks/usePlaces'
+import { SavedSearchControls } from '@/components/SavedSearchControls'
+import { useCollections } from '@/hooks/useCollections'
+import { useSavedPlaceSearch } from '@/hooks/useSavedPlaceSearch'
 import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
@@ -11,22 +13,20 @@ export const Route = createFileRoute('/dashboard')({ component: Dashboard })
 
 function Dashboard() {
   const { user, loading: authLoading } = useAuth()
-  const { data, isLoading, error } = useSavedPlaces(!!user)
+  const savedSearch = useSavedPlaceSearch(undefined, !!user)
+  const { data, isLoading, error } = savedSearch.search
+  const { data: collectionsData } = useCollections(!!user)
   const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const savedPlaces = (data?.savedPlaces ?? []).filter(
-    (sp) => sp.directlySaved !== false || (sp.syncedCollectionIds?.length ?? 0) > 0,
-  )
-  const selected = savedPlaces.find((sp) => sp.place.id === selectedId)
+  const savedPlaces = data?.places ?? []
+  const selected = savedPlaces.find((sp) => sp.id === selectedId)
 
   useEffect(() => {
-    const mapPlaces: MapPlace[] = (data?.savedPlaces ?? [])
-      .filter((sp) => sp.directlySaved !== false || (sp.syncedCollectionIds?.length ?? 0) > 0)
-      .flatMap((sp) => {
-        const place = toMapPlace(sp.place, sp.notes)
-        return place ? [place] : []
-      })
+    const mapPlaces: MapPlace[] = (data?.places ?? []).flatMap((sp) => {
+      const place = toMapPlace(sp, sp.notes)
+      return place ? [place] : []
+    })
     setPlaces(mapPlaces)
     setOnPlaceClick((place) => {
       setSelectedId(place.id)
@@ -42,6 +42,12 @@ function Dashboard() {
     setSelectedPlaceId(selectedId)
   }, [selectedId, setSelectedPlaceId])
 
+  useEffect(() => {
+    if (data && selectedId && !data.places.some((place) => place.id === selectedId)) {
+      setSelectedId(null)
+    }
+  }, [data, selectedId])
+
   useEffect(() => () => setSelectedPlaceId(null), [setSelectedPlaceId])
 
   if (authLoading) return <div>Loading...</div>
@@ -55,9 +61,6 @@ function Dashboard() {
       </div>
     )
   }
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div className="ui-alert-error">Couldn't load your places: {error.message}</div>
-
   return (
     <div className={`grid min-h-0 gap-3 lg:h-full ${selected ? 'min-[1280px]:grid-cols-2' : ''}`}>
       <section
@@ -76,6 +79,32 @@ function Dashboard() {
             <Plus className="h-4 w-4" aria-hidden="true" /> Add place
           </button>
         </div>
+        <SavedSearchControls
+          query={savedSearch.query}
+          onQueryChange={savedSearch.setQuery}
+          onLocationSelect={savedSearch.selectLocation}
+          selectedLocation={savedSearch.selectedLocation}
+          locations={savedSearch.locations}
+          filters={savedSearch.filters}
+          onFiltersChange={savedSearch.setFilters}
+          options={data?.filters}
+          collections={collectionsData?.collections ?? []}
+        />
+        {isLoading && (
+          <p role="status" className="text-xs text-muted-foreground">
+            Searching saved places...
+          </p>
+        )}
+        {!isLoading && savedSearch.search.isFetching && (
+          <p role="status" className="text-xs text-muted-foreground">
+            Updating results...
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="ui-alert-error">
+            Couldn't search saved places: {error.message}
+          </p>
+        )}
         {showAddForm && (
           <AddPlaceForm
             onAdded={(placeId) => {
@@ -86,33 +115,35 @@ function Dashboard() {
             onCancel={() => setShowAddForm(false)}
           />
         )}
-        {savedPlaces.length === 0 && !showAddForm && (
-          <p className="ui-empty-state">No places saved yet.</p>
+        {savedPlaces.length === 0 && !showAddForm && !isLoading && !error && (
+          <p className="ui-empty-state">
+            {savedSearch.hasCriteria
+              ? 'No saved places match your search or filters.'
+              : 'No places saved yet.'}
+          </p>
         )}
         <div className="space-y-2">
           {savedPlaces.map((sp) => (
             <button
               key={sp.id}
               type="button"
-              aria-pressed={selectedId === sp.place.id}
+              aria-pressed={selectedId === sp.id}
               onClick={() => {
-                setSelectedId(sp.place.id)
-                setSelectedPlaceId(sp.place.id)
-                const place = toMapPlace(sp.place, sp.notes)
+                setSelectedId(sp.id)
+                setSelectedPlaceId(sp.id)
+                const place = toMapPlace(sp, sp.notes)
                 if (place) flyTo(place.lat, place.lng)
               }}
-              className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${selectedId === sp.place.id ? 'border-primary bg-muted' : ''}`}
+              className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${selectedId === sp.id ? 'border-primary bg-muted' : ''}`}
             >
-              <span className="block break-words text-sm font-medium">{sp.place.name}</span>
-              {sp.place.address && (
+              <span className="block break-words text-sm font-medium">{sp.name}</span>
+              {sp.address && (
                 <span className="mt-1 block break-words text-xs text-muted-foreground">
-                  {sp.place.address}
+                  {sp.address}
                 </span>
               )}
-              {sp.place.rating != null && (
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  ★ {sp.place.rating}
-                </span>
+              {sp.rating != null && (
+                <span className="mt-1 block text-xs text-muted-foreground">★ {sp.rating}</span>
               )}
               {sp.notes && (
                 <span className="mt-1 block break-words text-xs italic text-muted-foreground">
@@ -125,9 +156,9 @@ function Dashboard() {
       </section>
       {selected && (
         <PlaceDetails
-          place={selected.place}
-          personalNotes={selected.notes}
-          savedPlaceId={selected.id}
+          place={selected}
+          personalNotes={selected.personalNotes}
+          savedPlaceId={selected.savedPlaceId}
           onClose={() => {
             setSelectedId(null)
             setSelectedPlaceId(null)
