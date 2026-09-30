@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { synced, bulkRemove, rename, deleteCollection } = vi.hoisted(() => ({
+const { synced, bulkRemove, movePlaces, rename, deleteCollection } = vi.hoisted(() => ({
   synced: { current: true },
   bulkRemove: vi.fn(),
+  movePlaces: vi.fn(),
   rename: vi.fn(),
   deleteCollection: vi.fn(),
 }))
@@ -17,7 +18,17 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('@/hooks/useCollections', () => ({
-  useCollections: () => ({ data: { collections: [] }, isLoading: false, error: null }),
+  useCollections: () => ({
+    data: {
+      collections: [
+        { id: 'collection-1', title: 'Want to go', syncedFromGoogle: synced.current },
+        { id: 'collection-2', title: 'Weekend', syncedFromGoogle: false },
+        { id: 'collection-3', title: 'Google list', syncedFromGoogle: true },
+      ],
+    },
+    isLoading: false,
+    error: null,
+  }),
   useCollection: () => ({
     data: {
       collection: { id: 'collection-1', title: 'Want to go', syncedFromGoogle: synced.current },
@@ -42,6 +53,7 @@ vi.mock('@/hooks/useCollections', () => ({
   }),
   useRemovePlaceFromCollection: () => ({ mutate: vi.fn(), isError: false }),
   useBulkRemovePlacesFromCollection: () => ({ mutateAsync: bulkRemove, isPending: false }),
+  useMovePlacesToCollection: () => ({ mutateAsync: movePlaces, isPending: false }),
   useUpdateCollection: () => ({ mutateAsync: rename, isPending: false }),
   useDeleteCollection: () => ({ mutateAsync: deleteCollection, isPending: false }),
 }))
@@ -76,6 +88,7 @@ describe('collection interactions', () => {
   beforeEach(() => {
     synced.current = true
     bulkRemove.mockReset().mockResolvedValue({ removedCount: 1 })
+    movePlaces.mockReset().mockResolvedValue({ movedCount: 1, addedCount: 1 })
     rename.mockReset().mockResolvedValue({ collection: { title: 'Changed' } })
     deleteCollection.mockReset().mockResolvedValue({ success: true })
   })
@@ -86,6 +99,7 @@ describe('collection interactions', () => {
 
     expect(screen.getByText(/remove places there/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Move' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Add place' })).not.toBeInTheDocument()
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
@@ -100,6 +114,7 @@ describe('collection interactions', () => {
     render(<Detail />)
 
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Move' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add place' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Collection actions' }))
@@ -160,5 +175,41 @@ describe('collection interactions', () => {
       }),
     )
     vi.unstubAllGlobals()
+  })
+
+  it('moves one place to another manual collection', async () => {
+    synced.current = false
+    const Detail = (Route as unknown as { component: React.ComponentType }).component
+    render(<Detail />)
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+    expect(screen.getByRole('dialog', { name: 'Move place' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Google list' })).not.toBeInTheDocument()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Destination collection' }), {
+      target: { value: 'collection-2' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Move place' }))
+    await waitFor(() =>
+      expect(movePlaces).toHaveBeenCalledWith({
+        collectionId: 'collection-1',
+        targetCollectionId: 'collection-2',
+        placeIds: ['place-1'],
+      }),
+    )
+  })
+
+  it('moves selected places together and keeps the picker open when the move fails', async () => {
+    synced.current = false
+    movePlaces.mockRejectedValue(new Error('Destination unavailable'))
+    const Detail = (Route as unknown as { component: React.ComponentType }).component
+    render(<Detail />)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select Cafe' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Move selected (1)' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Destination collection' }), {
+      target: { value: 'collection-2' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Move place' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Destination unavailable')
+    expect(screen.getByRole('dialog', { name: 'Move place' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Select Cafe' })).toBeChecked()
   })
 })

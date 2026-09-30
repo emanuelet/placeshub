@@ -134,3 +134,26 @@ export function useBulkRemovePlacesFromCollection() {
     },
   })
 }
+
+export function useMovePlacesToCollection() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      collectionId,
+      targetCollectionId,
+      placeIds,
+    }: {
+      collectionId: string
+      targetCollectionId: string
+      placeIds: string[]
+    }) =>
+      api.post<{ movedCount: number; addedCount: number }>(
+        `/collections/${collectionId}/places/move`,
+        { targetCollectionId, placeIds },
+      ),
+    onSuccess: (_, { collectionId, targetCollectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
+      queryClient.invalidateQueries({ queryKey: ['collection', targetCollectionId] })
+    },
+  })
+}
