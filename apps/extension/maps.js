@@ -1,4 +1,6 @@
-chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+const extensionApi = globalThis.browser ?? globalThis.chrome
+
+extensionApi.runtime.onMessage.addListener((message, _sender, respond) => {
   if (message?.type !== 'READ_GOOGLE') return
   const urls = message.urls
   if (
@@ -23,13 +25,20 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
     respond({ error: 'Invalid Maps request' })
     return
   }
-  Promise.all(
+  const read = Promise.all(
     urls.map(async (url) => {
       const response = await fetch(url, { credentials: 'include' })
       if (!response.ok) throw new Error(`Google Maps returned ${response.status}`)
       return response.text()
     }),
-  ).then(
+  )
+  if (globalThis.browser) {
+    return read.then(
+      (responses) => ({ responses }),
+      (error) => ({ error: String(error) }),
+    )
+  }
+  read.then(
     (responses) => respond({ responses }),
     (error) => respond({ error: String(error) }),
   )

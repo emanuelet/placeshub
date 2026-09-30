@@ -9,7 +9,7 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["alarms", "storage", "tabs", "webRequest", "permissions"],
+  "permissions": ["alarms", "storage", "tabs", "webRequest"],
   "host_permissions": ["https://www.google.com/*"],
   "optional_host_permissions": ["https://*/*", "http://localhost/*"],
   "options_ui": { "page": "options.html", "open_in_tab": true },

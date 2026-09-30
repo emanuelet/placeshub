@@ -2,8 +2,8 @@ import { Logo } from '@repo/ui/logo'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { Layers3, LayoutDashboard, Monitor, Moon, Settings2, Sun } from 'lucide-react'
-import { useEffect } from 'react'
+import { Layers3, LayoutDashboard, Menu, Monitor, Moon, Settings2, Sun, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useLocalStorage, useMediaQuery } from 'usehooks-ts'
 import { AuthProvider, useAuth } from '@/lib/auth'
 import { MapProvider, useMapManager } from '@/lib/mapContext'
@@ -34,7 +34,7 @@ function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="ui-button ui-button-secondary min-h-9 px-2"
+      className="ui-button ui-button-secondary min-h-11 min-w-11 px-2 md:min-h-9 md:min-w-0"
       aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       <Icon className="h-4 w-4" />
@@ -42,13 +42,14 @@ function ThemeToggle() {
   )
 }
 
-function AuthNav() {
+function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
   const { user, signOut, loading } = useAuth()
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
     await signOut()
     navigate({ to: '/auth/login' })
+    onNavigate?.()
   }
 
   if (loading) return null
@@ -59,12 +60,16 @@ function AuthNav() {
         <button
           type="button"
           onClick={handleSignOut}
-          className="ui-button ui-button-quiet min-h-9 px-2"
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
         >
           Sign out
         </button>
       ) : (
-        <Link to="/auth/login" className="ui-button ui-button-quiet min-h-9 px-2">
+        <Link
+          to="/auth/login"
+          onClick={onNavigate}
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
+        >
           Sign in
         </Link>
       )}
@@ -119,30 +124,104 @@ function MapLayout() {
 }
 
 function RootLayout() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const { pathname } = useLocation()
+  const { user, loading } = useAuth()
+  const showAppNavigation = !loading && !!user
+
   return (
     <>
       <div className="min-h-screen bg-canvas font-sans">
-        <nav className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b bg-surface px-3 py-3 sm:px-5">
-          <Link to="/" aria-label="PlacesHub home" className="mr-2 text-lg text-foreground">
-            <Logo />
-          </Link>
-          <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
-            <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> Dashboard
-          </Link>
-          <Link to="/collections" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
-            <Layers3 className="h-4 w-4" aria-hidden="true" /> Collections
-          </Link>
-          <Link
-            to="/settings"
-            search={{ tab: 'google-sync' }}
-            className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2"
-          >
-            <Settings2 className="h-4 w-4" aria-hidden="true" /> Settings
-          </Link>
-          <div className="ml-auto flex items-center gap-1">
-            <ThemeToggle />
-            <AuthNav />
+        <nav aria-label="Main navigation" className="border-b bg-surface">
+          <div className="flex items-center gap-2 px-3 py-3 sm:px-5">
+            <Link
+              to="/"
+              aria-label="PlacesHub home"
+              onClick={() => setMobileNavOpen(false)}
+              className="mr-2 shrink-0 text-lg text-foreground"
+            >
+              <Logo />
+            </Link>
+            {showAppNavigation && (
+              <div className="hidden items-center gap-2 md:flex">
+                <Link to="/dashboard" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
+                  <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> Dashboard
+                </Link>
+                <Link to="/collections" className="ui-button ui-button-quiet min-h-9 gap-1.5 px-2">
+                  <Layers3 className="h-4 w-4" aria-hidden="true" /> Collections
+                </Link>
+              </div>
+            )}
+            <div className="ml-auto flex items-center gap-1">
+              {showAppNavigation && (
+                <Link
+                  to="/settings"
+                  search={{ tab: 'google-sync' }}
+                  className="ui-button ui-button-quiet hidden min-h-9 gap-1.5 px-2 md:inline-flex"
+                >
+                  <Settings2 className="h-4 w-4" aria-hidden="true" /> Settings
+                </Link>
+              )}
+              <ThemeToggle />
+              <div className={showAppNavigation ? 'hidden md:block' : ''}>
+                <AuthNav />
+              </div>
+              {showAppNavigation && (
+                <button
+                  type="button"
+                  className="ui-button ui-button-secondary min-h-11 min-w-11 px-2 md:hidden"
+                  aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+                  aria-expanded={mobileNavOpen}
+                  aria-controls="mobile-navigation"
+                  onClick={() => setMobileNavOpen((open) => !open)}
+                >
+                  {mobileNavOpen ? (
+                    <X className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Menu className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
+          {showAppNavigation && (
+            <div
+              id="mobile-navigation"
+              hidden={!mobileNavOpen}
+              className="border-t px-3 py-2 md:hidden"
+            >
+              <div className="grid gap-1">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-current={pathname === '/dashboard' ? 'page' : undefined}
+                  className="ui-button ui-button-quiet min-h-11 justify-start gap-2 px-3"
+                >
+                  <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> Dashboard
+                </Link>
+                <Link
+                  to="/collections"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-current={pathname.startsWith('/collections') ? 'page' : undefined}
+                  className="ui-button ui-button-quiet min-h-11 justify-start gap-2 px-3"
+                >
+                  <Layers3 className="h-4 w-4" aria-hidden="true" /> Collections
+                </Link>
+                <Link
+                  to="/settings"
+                  search={{ tab: 'google-sync' }}
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-current={pathname === '/settings' ? 'page' : undefined}
+                  className="ui-button ui-button-quiet min-h-11 justify-start gap-2 px-3"
+                >
+                  <Settings2 className="h-4 w-4" aria-hidden="true" /> Settings
+                </Link>
+                <div className="border-t pt-1">
+                  <AuthNav onNavigate={() => setMobileNavOpen(false)} />
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
         <main className="w-full p-3 sm:p-5">
           <MapProvider>
@@ -150,7 +229,7 @@ function RootLayout() {
           </MapProvider>
         </main>
       </div>
-      <TanStackRouterDevtools />
+      {import.meta.env.DEV && <TanStackRouterDevtools />}
     </>
   )
 }

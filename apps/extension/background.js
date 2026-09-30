@@ -1,24 +1,49 @@
-import { listUrl, parseList, parseLists, parsePlace, placeUrl } from './parser.js'
+import {
+  listRequestId,
+  listUrlForList,
+  parseList,
+  parseLists,
+  parsePlace,
+  placeUrl,
+} from './parser.js'
 
+const extensionApi = globalThis.browser ?? globalThis.chrome
 const ALARM = 'sync-google-lists'
 const STARTUP_ALARM = 'startup-google-sync'
 const GOOGLE = 'https://www.google.com/'
+let listCapture = Promise.resolve()
 
-chrome.webRequest.onBeforeRequest.addListener(
+extensionApi.webRequest.onBeforeRequest.addListener(
   async ({ url }) => {
     const parsed = new URL(url)
     if (parsed.pathname === '/locationhistory/preview/mas') {
-      await chrome.storage.local.set({ discoveryUrl: url })
+      await extensionApi.storage.local.set({ discoveryUrl: url })
     } else if (
       parsed.pathname === '/maps/preview/entitylist/getlist' &&
       parsed.searchParams.get('pb')?.startsWith('!1m6!1s')
     ) {
-      await chrome.storage.local.set({ listTemplate: url })
+      listCapture = listCapture
+        .then(async () => {
+          const id = listRequestId(url)
+          const { listTemplates } = await extensionApi.storage.local.get('listTemplates')
+          const previous =
+            listTemplates && typeof listTemplates === 'object' && !Array.isArray(listTemplates)
+              ? listTemplates
+              : {}
+          const recent = Object.fromEntries(Object.entries(previous).slice(-99))
+          await extensionApi.storage.local.set({
+            listTemplate: url,
+            listTemplates: { ...recent, [id]: url },
+          })
+        })
+        .catch(() => {
+          // Unsupported Google requests are not safe templates for other lists.
+        })
     } else if (
       parsed.pathname === '/maps/preview/place' &&
       /!1s0x[0-9a-f]+:0x[0-9a-f]+/.test(parsed.searchParams.get('pb') || '')
     ) {
-      await chrome.storage.local.set({ placeTemplate: url })
+      await extensionApi.storage.local.set({ placeTemplate: url })
     }
   },
   {
@@ -31,24 +56,28 @@ chrome.webRequest.onBeforeRequest.addListener(
 )
 
 async function initialize() {
-  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
-  if (!(await chrome.alarms.get(ALARM))) await chrome.alarms.create(ALARM, { periodInMinutes: 60 })
+  await extensionApi.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
+  if (!(await extensionApi.alarms.get(ALARM)))
+    await extensionApi.alarms.create(ALARM, { periodInMinutes: 60 })
 }
-chrome.runtime.onInstalled.addListener(initialize)
-chrome.runtime.onStartup.addListener(async () => {
+extensionApi.runtime.onInstalled.addListener(initialize)
+extensionApi.runtime.onStartup.addListener(async () => {
   await initialize()
-  await chrome.alarms.create(STARTUP_ALARM, { delayInMinutes: 0.5 })
+  await extensionApi.alarms.create(STARTUP_ALARM, { delayInMinutes: 0.5 })
 })
 
 async function mapsTab() {
-  const [existing] = await chrome.tabs.query({ url: 'https://www.google.com/maps*' })
+  const [existing] = await extensionApi.tabs.query({ url: 'https://www.google.com/maps*' })
   if (existing?.id) return existing.id
-  const created = await chrome.tabs.create({ url: 'https://www.google.com/maps/', active: false })
+  const created = await extensionApi.tabs.create({
+    url: 'https://www.google.com/maps/',
+    active: false,
+  })
   if (!created.id) throw new Error('Unable to open Google Maps')
   await new Promise((resolve, reject) => {
     const finish = (error) => {
       clearTimeout(timeout)
-      chrome.tabs.onUpdated.removeListener(listener)
+      extensionApi.tabs.onUpdated.removeListener(listener)
       if (error) reject(error)
       else resolve()
     }
@@ -56,8 +85,8 @@ async function mapsTab() {
       if (id === created.id && info.status === 'complete') finish()
     }
     const timeout = setTimeout(() => finish(new Error('Google Maps tab did not load')), 30000)
-    chrome.tabs.onUpdated.addListener(listener)
-    chrome.tabs.get(created.id).then((tab) => {
+    extensionApi.tabs.onUpdated.addListener(listener)
+    extensionApi.tabs.get(created.id).then((tab) => {
       if (tab.status === 'complete') finish()
     }, finish)
   })
@@ -67,7 +96,7 @@ async function mapsTab() {
 async function readGoogle(tabId, urls) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      const reply = await chrome.tabs.sendMessage(tabId, { type: 'READ_GOOGLE', urls })
+      const reply = await extensionApi.tabs.sendMessage(tabId, { type: 'READ_GOOGLE', urls })
       if (reply?.error) throw new Error(reply.error)
       if (reply?.responses?.length !== urls.length) throw new Error('Missing Google response')
       return reply.responses
@@ -88,29 +117,49 @@ async function syncNow() {
 }
 
 async function runSync() {
-  const { token, appUrl, selectedListIds, discoveryUrl, listTemplate, placeTemplate } =
-    await chrome.storage.local.get([
-      'token',
-      'appUrl',
-      'selectedListIds',
-      'discoveryUrl',
-      'listTemplate',
-      'placeTemplate',
-    ])
+  await listCapture
+  const {
+    token,
+    appUrl,
+    selectedListIds,
+    discoveryUrl,
+    listTemplate,
+    listTemplates,
+    placeTemplate,
+  } = await extensionApi.storage.local.get([
+    'token',
+    'appUrl',
+    'selectedListIds',
+    'discoveryUrl',
+    'listTemplate',
+    'listTemplates',
+    'placeTemplate',
+  ])
   if (!token || !appUrl) throw new Error('Connect PlacesHub in extension settings first')
   if (!discoveryUrl || !listTemplate)
     throw new Error('Open Google Maps → Saved and open a list to initialize sync')
   const tabId = await mapsTab()
   const [discovery] = await readGoogle(tabId, [discoveryUrl])
   const lists = parseLists(discovery)
-  await chrome.storage.local.set({ availableLists: lists })
+  await extensionApi.storage.local.set({ availableLists: lists })
   const selected = lists.filter(
     (list) => !Array.isArray(selectedListIds) || selectedListIds.includes(list.sourceListId),
   )
   const results = []
   for (const list of selected) {
+    let requestKind = 'shared'
     try {
-      const [response] = await readGoogle(tabId, [listUrl(listTemplate, list.sourceListId)])
+      const captured = listTemplates?.[list.sourceListId]
+      if (typeof captured === 'string') {
+        try {
+          if (listRequestId(captured) === list.sourceListId) requestKind = 'list-specific'
+        } catch {
+          // A stale capture falls back to the shared request template.
+        }
+      }
+      const [response] = await readGoogle(tabId, [
+        listUrlForList(captured, listTemplate, list.sourceListId),
+      ])
       const snapshot = parseList(response, list.sourceListId, list.advertisedCount)
       let enriched = 0
       let detailFailures = 0
@@ -153,25 +202,31 @@ async function runSync() {
         detailsUnavailable: !placeTemplate,
       })
     } catch (error) {
-      results.push({ title: list.title, error: String(error) })
+      results.push({ title: list.title, error: `${String(error)} [${requestKind} request]` })
     }
   }
   const status = { at: new Date().toISOString(), results }
-  await chrome.storage.local.set({ lastSync: status })
+  await extensionApi.storage.local.set({ lastSync: status })
   return status
 }
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+extensionApi.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM || alarm.name === STARTUP_ALARM)
     syncNow().catch(async (error) => {
-      await chrome.storage.local.set({
+      await extensionApi.storage.local.set({
         lastSync: { at: new Date().toISOString(), error: String(error) },
       })
     })
 })
 
-chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+extensionApi.runtime.onMessage.addListener((message, _sender, respond) => {
   if (message?.type !== 'SYNC_NOW') return
+  if (globalThis.browser) {
+    return syncNow().then(
+      (status) => ({ status }),
+      (error) => ({ error: String(error) }),
+    )
+  }
   syncNow().then(
     (status) => respond({ status }),
     (error) => respond({ error: String(error) }),

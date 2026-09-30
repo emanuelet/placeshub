@@ -1,0 +1,9 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
+name = "placeshub-web"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-09-29"
+
+# Preview API requests return 503 until a separate preview Worker binding is configured.
+[[env.production.services]]
+binding = "API"
+service = "placeshub-api"

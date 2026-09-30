@@ -67,6 +67,11 @@ function Landing() {
       <Alert tone="success" className="mx-auto max-w-3xl text-center">
         Your Google Maps data stays yours: sync is one-way and keys can be revoked at any time.
       </Alert>
+      <p className="text-center text-sm text-muted-foreground">
+        <Link to="/privacy" className="font-semibold text-primary hover:underline">
+          Extension privacy
+        </Link>
+      </p>
     </div>
   )
 }

@@ -15,6 +15,6 @@
       "@/*": ["./app/*"]
     }
   },
-  "include": ["app"],
+  "include": ["app", "functions"],
   "exclude": ["node_modules"]
 }
