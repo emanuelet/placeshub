@@ -64,6 +64,53 @@ function Landing() {
         ))}
       </section>
 
+      <section aria-labelledby="extension-heading" className="space-y-5">
+        <div className="space-y-2 text-center">
+          <h2 id="extension-heading" className="ui-page-title">
+            See the browser extension in action
+          </h2>
+          <p className="text-muted-foreground">
+            Connect PlacesHub, choose your Google Maps lists, and sync them from Chrome or Firefox.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <figure className="ui-panel overflow-hidden p-4">
+            <img
+              src="/screenshots/extension-popup.png"
+              alt="PlacesHub extension popup with selected Google Maps lists and example sync results"
+              width="500"
+              height="455"
+              loading="lazy"
+              className="mx-auto h-auto w-full max-w-[500px] rounded-control"
+            />
+            <figcaption className="mt-3 text-sm text-muted-foreground">
+              Select lists and see sync results (example data).
+            </figcaption>
+          </figure>
+          <figure className="ui-panel overflow-hidden p-4">
+            <img
+              src="/screenshots/extension-settings.png"
+              alt="PlacesHub extension settings with fields for the site address and extension key"
+              width="760"
+              height="430"
+              loading="lazy"
+              className="mx-auto h-auto w-full max-w-[760px] rounded-control"
+            />
+            <figcaption className="mt-3 text-sm text-muted-foreground">
+              Connect securely with a revocable extension key.
+            </figcaption>
+          </figure>
+        </div>
+        <div className="text-center">
+          <a
+            href="https://github.com/emanuelet/placeshub#google-maps-list-sync-chrome-and-firefox-extensions"
+            className={buttonClass('secondary', 'min-h-11 px-6')}
+          >
+            Chrome &amp; Firefox install instructions
+          </a>
+        </div>
+      </section>
+
       <Alert tone="success" className="mx-auto max-w-3xl text-center">
         Your Google Maps data stays yours: sync is one-way and keys can be revoked at any time.
       </Alert>

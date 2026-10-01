@@ -1,6 +1,13 @@
 import { Logo } from '@repo/ui/logo'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { createRootRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
+import {
+  createRootRoute,
+  Link,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Layers3, LayoutDashboard, Menu, Monitor, Moon, Settings2, Sun, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -48,7 +55,7 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate({ to: '/auth/login' })
+    navigate({ to: '/' })
     onNavigate?.()
   }
 
@@ -80,13 +87,23 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
 function MapLayout() {
   const { containerRef, mapLoaded } = useMapManager()
   const location = useLocation()
+  const { user, loading } = useAuth()
   const [sidebarSide] = useLocalStorage<'left' | 'right'>('sidebar-side', 'right')
+
+  const publicPage =
+    location.pathname === '/' ||
+    location.pathname === '/privacy' ||
+    location.pathname.startsWith('/auth/') ||
+    location.pathname.startsWith('/share/')
 
   const showMap =
     location.pathname === '/dashboard' ||
     location.pathname.startsWith('/collections/') ||
     location.pathname === '/collections' ||
     location.pathname.startsWith('/share/')
+
+  if (!publicPage && loading) return null
+  if (!publicPage && !user) return <Navigate to="/" replace />
 
   return (
     <div
