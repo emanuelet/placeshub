@@ -47,13 +47,13 @@ requires version 142 or later for the declared data-collection permissions.
   signs accepted extensions; do not distribute the unsigned ZIP as a normal
   installable XPI.
 - **Privacy URL:** Publish the web app's public `/privacy` page first and use
-  `https://<your-pages-domain>/privacy` in both store listings. Review its
+  `https://placeshub.org/privacy` in both store listings. Review its
   wording against the final hosted data-handling policy and provide a real
   support contact in the listings. The extension key stays local until used to
   authenticate a sync; disconnect clears its local storage, while revoking a
   key in PlacesHub blocks future uploads.
 
-Before submission, use the production PlacesHub URL in extension settings and
+Before submission, use `https://placeshub.org` in extension settings and
 test install → connect → capture list and place details → sync → revoke on
 both browsers using a signed-in Google Maps account. Google Maps' list APIs
 are undocumented; the previously reported **Favorite places** response-format

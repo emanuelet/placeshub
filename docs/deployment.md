@@ -4,7 +4,8 @@ PlacesHub has two Cloudflare services: the `placeshub-api` Worker and the
 `placeshub-web` Pages project. The web app requests `/api/*` on its own origin;
 `apps/web/functions/api/[[path]].ts` forwards those requests to the Worker
 through the production-only `API` service binding in `apps/web/wrangler.toml`.
-The browser and extension should use the **Pages URL**, not the Worker URL.
+The production origin for the browser and extension is **https://placeshub.org**,
+not the Worker URL. `placeshub-web.pages.dev` remains a Pages alias.
 
 ## 1. Prepare hosted services
 
@@ -12,14 +13,18 @@ The browser and extension should use the **Pages URL**, not the Worker URL.
    `packages/db/supabase/001-initial.sql`, `002-google-sync.sql`, and
    `003-place-source-keys.sql`, and `004-mcp-api-keys.sql` in order to the
    **hosted** database. The local `supabase/config.toml` configures local
-   development, not hosted auth.
+   development, not hosted auth. Then run
+   `pnpm --filter @placeshub/db run db:migrate` using the intended hosted
+   database connection.
 2. Enable Places API (New) in Google Cloud and obtain a server-side API key.
    Restrict the key to that API. Obtain a public Mapbox token.
-3. Choose the production Pages URL (initially
-   `https://placeshub-web.pages.dev`; use your custom domain if configured).
-   Set Supabase Auth's Site URL to that origin and add its auth redirect URLs.
+3. Set Supabase Auth's Site URL to `https://placeshub.org` and allow that origin
+   in Auth redirect URLs. OAuth sign-in returns to the current browser origin;
+   without this allow-list entry, it cannot return to the custom domain.
    Configure the Google provider and its Supabase callback if using Google
-   sign-in. Add preview origins only when preview auth is intentionally enabled.
+   sign-in. Retain `https://placeshub-web.pages.dev` in the redirect allow-list
+   only if that alias should also support sign-in. Add preview origins only when
+   preview auth is intentionally enabled.
 
 ## 2. Deploy the API Worker
 
@@ -61,6 +66,11 @@ Worker, with:
 | Production branch | `main` |
 | Build environment | `NODE_VERSION=24`, `PNPM_VERSION=12.6.0` |
 
+In the Pages project, attach `placeshub.org` as a custom domain. Its Cloudflare
+DNS apex (`@`) should have a **proxied CNAME** to `placeshub-web.pages.dev`;
+Cloudflare flattens that CNAME into public A/AAAA answers. The domain is managed
+in Pages and DNS rather than in `apps/web/wrangler.toml`.
+
 Set these **build-time** Pages environment variables for the production build:
 
 | Pages variable | Value |
@@ -83,7 +93,7 @@ binding are configured; they do not reach production data.
 
 ## 4. Verify
 
-1. `https://<pages-host>/api/health` returns `{"status":"ok"}`. A 503 with
+1. `https://placeshub.org/api/health` returns `{"status":"ok"}`. A 503 with
    `API service binding is not configured` means the Pages production binding
    did not apply. Plain `/api` should return an API response, not the SPA HTML.
 2. Direct navigation and refresh of `/dashboard`, `/collections`, and
@@ -95,7 +105,7 @@ binding are configured; they do not reach production data.
    in PlacesHub Settings → Google Sync. Then sync one Google list and check its
    result in the popup.
 5. Create an AI agent key in Settings → AI agents. A Streamable HTTP client
-   using `https://<pages-host>/api/mcp` and `Authorization: Bearer <key>` can
+   using `https://placeshub.org/api/mcp` and `Authorization: Bearer <key>` can
    list tools without a session ID. Revoking the key blocks its next request.
 
 For local development, `pnpm dev` still uses Vite's `/api` proxy to the local
