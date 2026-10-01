@@ -24,7 +24,7 @@ function googleMapsLink(place: DetailedPlace) {
   const url = new URL('https://www.google.com/maps/search/')
   url.searchParams.set('api', '1')
   url.searchParams.set('query', query)
-  if (place.googlePlaceId && !place.googlePlaceId.startsWith('maps:')) {
+  if (place.googlePlaceId && !/^(maps|mymaps):/.test(place.googlePlaceId)) {
     url.searchParams.set('query_place_id', place.googlePlaceId)
   }
   return url.href
@@ -34,12 +34,14 @@ export function PlaceDetails({
   place,
   personalNotes,
   importedNotes,
+  importedNotesLabel = 'Google list note',
   savedPlaceId,
   onClose,
 }: {
   place: DetailedPlace
   personalNotes?: string | null
   importedNotes?: string | null
+  importedNotesLabel?: string
   savedPlaceId?: string | null
   onClose: () => void
 }) {
@@ -141,7 +143,7 @@ export function PlaceDetails({
         <div className="space-y-2 border-t pt-3 text-sm">
           {importedNotes && (
             <p>
-              <strong>Google list note:</strong> {importedNotes}
+              <strong>{importedNotesLabel}:</strong> {importedNotes}
             </p>
           )}
           {savedPlaceId ? (

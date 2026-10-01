@@ -66,6 +66,22 @@ export function useCreateCollection() {
   })
 }
 
+export function useImportCollection() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: {
+      title: string
+      places: { name: string; lat: number; lng: number; notes: string | null }[]
+    }) => api.post<{ collection: Collection; imported: number }>('/collections/import', body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['savedPlaces'] })
+      queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
+      queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
+    },
+  })
+}
+
 export function useUpdateCollection() {
   const queryClient = useQueryClient()
   return useMutation({

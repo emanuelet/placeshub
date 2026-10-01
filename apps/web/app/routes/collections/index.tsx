@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { ImportMyMapsDialog } from '@/components/ImportMyMapsDialog'
 import { useCollections, useCreateCollection } from '@/hooks/useCollections'
 import { useAuth } from '@/lib/auth'
 import { useMapManager } from '@/lib/mapContext'
@@ -16,6 +17,7 @@ function Collections() {
   const { setPlaces, setOnPlaceClick, setSelectedPlaceId } = useMapManager()
   const createCollection = useCreateCollection()
   const [showForm, setShowForm] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [formError, setFormError] = useState('')
@@ -88,17 +90,35 @@ function Collections() {
     <div className="min-w-0">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="ui-page-title">Collections</h1>
-        <button
-          type="button"
-          onClick={() => {
-            setShowForm(true)
-            setFormError('')
-          }}
-          className="ui-button ui-button-primary gap-1"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" /> New Collection
-        </button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setShowImport(true)}
+            className="ui-button ui-button-secondary gap-1"
+          >
+            <Upload className="h-4 w-4" aria-hidden="true" /> Import KML/KMZ
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowForm(true)
+              setFormError('')
+            }}
+            className="ui-button ui-button-primary gap-1"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" /> New Collection
+          </button>
+        </div>
       </div>
+
+      {showImport && (
+        <ImportMyMapsDialog
+          onCancel={() => setShowImport(false)}
+          onImported={(id) =>
+            navigate({ to: '/collections/$collectionId', params: { collectionId: id } })
+          }
+        />
+      )}
 
       {showForm && (
         <dialog

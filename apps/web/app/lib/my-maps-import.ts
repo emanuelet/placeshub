@@ -31,7 +31,10 @@ export function parseMyMapsKml(xml: string): MyMapsImport {
   }
   if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error('KML document types are not supported.')
   const document = new DOMParser().parseFromString(xml, 'application/xml')
-  if (document.getElementsByTagName('parsererror').length || document.documentElement.localName !== 'kml') {
+  if (
+    document.getElementsByTagName('parsererror').length ||
+    document.documentElement.localName !== 'kml'
+  ) {
     throw new Error('This file is not valid KML.')
   }
   const map = document.getElementsByTagNameNS('*', 'Document')[0]
@@ -92,12 +95,17 @@ export async function parseMyMapsFile(file: File): Promise<MyMapsImport> {
   } catch {
     throw new Error('This KMZ file could not be opened.')
   }
-  const kml = Object.values(zip.files).find(
-    (entry) => !entry.dir && entry.name.toLowerCase() === 'doc.kml',
-  ) ?? Object.values(zip.files).find((entry) => !entry.dir && entry.name.toLowerCase().endsWith('.kml'))
+  const kml =
+    Object.values(zip.files).find(
+      (entry) => !entry.dir && entry.name.toLowerCase() === 'doc.kml',
+    ) ??
+    Object.values(zip.files).find(
+      (entry) => !entry.dir && entry.name.toLowerCase().endsWith('.kml'),
+    )
   if (!kml) throw new Error('No KML map was found inside this KMZ file.')
   // JSZip exposes the ZIP central-directory size here, before decompressing an entry.
-  const size = (kml as typeof kml & { _data?: { uncompressedSize?: number } })._data?.uncompressedSize
+  const size = (kml as typeof kml & { _data?: { uncompressedSize?: number } })._data
+    ?.uncompressedSize
   if (size == null || size > MAX_KML_BYTES) throw new Error('The KML is too large (maximum 5 MB).')
   return parseMyMapsKml(await kml.async('string'))
 }

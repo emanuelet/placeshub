@@ -7,10 +7,32 @@ import {
 } from '@placeshub/db/schema'
 import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
 
 const collectionsRouter = new Hono<AuthEnv>()
+const importSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  places: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(500),
+        lat: z.number().finite().min(-90).max(90),
+        lng: z.number().finite().min(-180).max(180),
+        notes: z.string().max(5000).nullable(),
+      }),
+    )
+    .min(1)
+    .max(3000),
+})
+
+async function importPlaceKey(name: string, lat: number, lng: number) {
+  const data = new TextEncoder().encode(JSON.stringify([name.toLowerCase(), lat, lng]))
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', data))
+  return `mymaps:${Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('')}`
+}
+
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type Transaction = Parameters<Parameters<ReturnType<typeof getDb>['db']['transaction']>[0]>[0]
@@ -87,6 +109,89 @@ collectionsRouter.post('/', async (c) => {
       .returning()
 
     return c.json({ collection }, 201)
+  } finally {
+    await client.end()
+  }
+})
+
+collectionsRouter.post('/import', async (c) => {
+  if (Number(c.req.header('content-length')) > 8 * 1024 * 1024) {
+    return c.json({ error: 'Import is too large (maximum 8 MB)' }, 413)
+  }
+  const raw = await c.req.text()
+  if (new TextEncoder().encode(raw).length > 8 * 1024 * 1024) {
+    return c.json({ error: 'Import is too large (maximum 8 MB)' }, 413)
+  }
+  let body: unknown
+  try {
+    body = JSON.parse(raw)
+  } catch {
+    return c.json({ error: 'Invalid JSON import' }, 400)
+  }
+  const parsed = importSchema.safeParse(body)
+  if (!parsed.success) return c.json({ error: 'Invalid map or places (maximum 3,000 pins)' }, 400)
+  const { title, places: entries } = parsed.data
+  const keys = await Promise.all(
+    entries.map((entry) => importPlaceKey(entry.name, entry.lat, entry.lng)),
+  )
+  if (new Set(keys).size !== keys.length) {
+    return c.json({ error: 'The map contains duplicate point pins' }, 400)
+  }
+
+  const userId = c.get('userId')
+  const { db, client } = getDb(c.env.DATABASE_URL)
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [collection] = await tx
+        .insert(collections)
+        .values({ userId, title, slug: `mymaps-${crypto.randomUUID()}` })
+        .returning()
+      if (!collection) throw new Error('Failed to create collection')
+
+      for (let offset = 0; offset < entries.length; offset += 100) {
+        const batch = entries.slice(offset, offset + 100)
+        const batchKeys = keys.slice(offset, offset + 100)
+        await tx
+          .insert(places)
+          .values(
+            batch.map((entry, index) => ({
+              googlePlaceId: batchKeys[index] as string,
+              name: entry.name,
+              lat: entry.lat,
+              lng: entry.lng,
+            })),
+          )
+          .onConflictDoNothing({ target: places.googlePlaceId })
+        const rows = await tx
+          .select({ id: places.id, googlePlaceId: places.googlePlaceId })
+          .from(places)
+          .where(inArray(places.googlePlaceId, batchKeys))
+        if (rows.length !== batch.length) throw new Error('Failed to import all places')
+        const ids = new Map(rows.map((row) => [row.googlePlaceId, row.id]))
+        await tx
+          .insert(savedPlaces)
+          .values(
+            batch.map((_, index) => ({
+              userId,
+              placeId: ids.get(batchKeys[index] as string) as string,
+            })),
+          )
+          .onConflictDoUpdate({
+            target: [savedPlaces.userId, savedPlaces.placeId],
+            set: { directlySaved: true },
+          })
+        await tx.insert(collectionPlaces).values(
+          batch.map((entry, index) => ({
+            collectionId: collection.id,
+            placeId: ids.get(batchKeys[index] as string) as string,
+            sortOrder: offset + index,
+            notes: entry.notes,
+          })),
+        )
+      }
+      return { collection, imported: entries.length }
+    })
+    return c.json(result, 201)
   } finally {
     await client.end()
   }

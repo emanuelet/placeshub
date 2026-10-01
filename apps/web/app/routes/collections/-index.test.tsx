@@ -1,14 +1,17 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { authState, createCollection } = vi.hoisted(() => ({
+const { authState, createCollection, importCollection, parseFile, navigate } = vi.hoisted(() => ({
   authState: { loggedIn: true, queryFailure: true },
   createCollection: vi.fn(),
+  importCollection: vi.fn(),
+  parseFile: vi.fn(),
+  navigate: vi.fn(),
 }))
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: { component: unknown }) => opts,
-  useNavigate: () => vi.fn(),
+  useNavigate: () => navigate,
   Link: ({ children }: { children: React.ReactNode }) => children,
 }))
 
@@ -31,7 +34,10 @@ vi.mock('@/hooks/useCollections', () => ({
     error: authState.queryFailure ? new Error('Network down') : null,
   }),
   useCreateCollection: () => ({ mutateAsync: createCollection, isPending: false }),
+  useImportCollection: () => ({ mutateAsync: importCollection, isPending: false }),
 }))
+
+vi.mock('@/lib/my-maps-import', () => ({ parseMyMapsFile: parseFile }))
 
 import { Route } from './index'
 
@@ -40,6 +46,9 @@ describe('Collections route', () => {
     authState.loggedIn = true
     authState.queryFailure = true
     createCollection.mockReset()
+    importCollection.mockReset()
+    parseFile.mockReset()
+    navigate.mockReset()
   })
 
   it('renders an error message instead of hanging when the query fails', () => {
@@ -73,5 +82,37 @@ describe('Collections route', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Name already used')
     expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue('Coffee')
+  })
+
+  it('explains where to export and imports a selected map as one collection', async () => {
+    authState.queryFailure = false
+    parseFile.mockResolvedValue({
+      title: 'Bali',
+      places: [{ name: 'Beach', lat: -8.7, lng: 115.1, notes: 'Sunset' }],
+      skipped: 1,
+    })
+    importCollection.mockResolvedValue({ collection: { id: 'collection-1' }, imported: 1 })
+    const Collections = (Route as unknown as { component: React.ComponentType }).component
+    render(<Collections />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import KML/KMZ' }))
+    expect(screen.getByRole('dialog', { name: 'Import from Google My Maps' })).toBeInTheDocument()
+    expect(screen.getByText(/Export to KML\/KMZ/)).toBeInTheDocument()
+    expect(screen.getByText(/Entire map/)).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('KML or KMZ file'), {
+      target: { files: [new File(['map'], 'Bali.kmz')] },
+    })
+    expect(await screen.findByText(/Bali: 1 point pins ready to import/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Import collection' }))
+    await waitFor(() =>
+      expect(importCollection).toHaveBeenCalledWith({
+        title: 'Bali',
+        places: [{ name: 'Beach', lat: -8.7, lng: 115.1, notes: 'Sunset' }],
+      }),
+    )
+    expect(navigate).toHaveBeenCalledWith({
+      to: '/collections/$collectionId',
+      params: { collectionId: 'collection-1' },
+    })
   })
 })

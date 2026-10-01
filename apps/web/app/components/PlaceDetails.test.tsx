@@ -67,4 +67,19 @@ describe('place details', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save notes' }))
     await waitFor(() => expect(saveNotes).toHaveBeenCalledWith({ id: 'save-1', notes: null }))
   })
+
+  it('links imported My Maps pins by coordinates instead of treating synthetic IDs as Google Place IDs', () => {
+    render(
+      <PlaceDetails
+        place={{ id: 'pin-1', name: 'Beach', googlePlaceId: 'mymaps:abc', lat: -8.7, lng: 115.1 }}
+        importedNotes="Sunset"
+        importedNotesLabel="Collection note"
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Collection note:').parentElement).toHaveTextContent('Sunset')
+    const href = screen.getByRole('link', { name: /View on Google Maps/ }).getAttribute('href')
+    expect(href).toContain('query=-8.7%2C115.1')
+    expect(href).not.toContain('query_place_id')
+  })
 })

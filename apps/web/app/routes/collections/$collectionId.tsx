@@ -521,6 +521,7 @@ function CollectionDetail() {
         <PlaceDetails
           place={selected}
           importedNotes={selected.notes}
+          importedNotesLabel={manual ? 'Collection note' : 'Google list note'}
           personalNotes={selected.personalNotes}
           savedPlaceId={selected.savedPlaceId}
           onClose={() => {
