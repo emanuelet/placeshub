@@ -64,6 +64,16 @@ describe('saved place search controls', () => {
     )
   })
 
+  it('starts with filters collapsed and expands them on demand', () => {
+    renderSearch()
+    const toggle = screen.getByRole('button', { name: 'Filters' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('combobox', { name: 'City' })).not.toBeInTheDocument()
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('combobox', { name: 'City' })).toBeInTheDocument()
+  })
+
   it('searches city text, then switches to structured location when a suggestion is selected', async () => {
     renderSearch()
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved places' }), {
@@ -93,6 +103,7 @@ describe('saved place search controls', () => {
 
   it('filters and sorts without a text query, scoped to a collection', async () => {
     renderSearch()
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await screen.findByRole('option', { name: 'Favorite' })
     fireEvent.change(screen.getByRole('combobox', { name: 'Collection' }), {
       target: { value: 'collection-1' },
@@ -137,6 +148,7 @@ describe('saved place search controls', () => {
 
   it('waits for rapid filter changes and displays removable active filters', async () => {
     renderSearch()
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await screen.findByRole('option', { name: 'Sydney' })
     const initialRequests = requested('/saved/search?').length
 

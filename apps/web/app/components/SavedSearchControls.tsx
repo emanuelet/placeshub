@@ -62,7 +62,7 @@ export function SavedSearchControls({
   collections,
 }: Props) {
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
   const update = (key: keyof SavedSearchParams, value: string) =>
     onFiltersChange({ ...filters, [key]: value || undefined })
 
@@ -105,48 +105,49 @@ export function SavedSearchControls({
       aria-label="Find saved places"
       className="space-y-3 rounded-panel border bg-muted/40 p-3 shadow-sm sm:p-4"
     >
-      <div className="relative">
+      <div>
         <label
           htmlFor="saved-search"
           className="mb-1.5 block text-xs font-semibold text-foreground"
         >
           Search saved places
         </label>
-        <Search
-          className="pointer-events-none absolute top-10 left-3 h-4 w-4 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <input
-          id="saved-search"
-          type="search"
-          value={query}
-          onChange={(event) => {
-            onQueryChange(event.target.value)
-            setShowSuggestions(true)
-          }}
-          placeholder="Name, city or address"
-          className="ui-input pl-9"
-          autoComplete="off"
-        />
-        {showSuggestions && !selectedLocation && locations.length > 0 && (
-          <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-control border bg-surface p-1 shadow-panel">
-            {locations.map((location) => (
-              <button
-                type="button"
-                key={`${location.type}:${location.value}`}
-                onClick={() => {
-                  onLocationSelect(location)
-                  setShowSuggestions(false)
-                }}
-                className="flex w-full items-center gap-2 rounded-control p-2 text-left text-sm hover:bg-muted"
-              >
-                <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate">{location.value}</span>
-                <span className="text-xs text-muted-foreground">({location.type})</span>
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="relative">
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <input
+            id="saved-search"
+            type="search"
+            value={query}
+            onChange={(event) => {
+              onQueryChange(event.target.value)
+              setShowSuggestions(true)
+            }}
+            placeholder="Name, city or address"
+            className="ui-input pl-10"
+            autoComplete="off"
+          />
+          {showSuggestions && !selectedLocation && locations.length > 0 && (
+            <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-control border bg-surface p-1 shadow-panel">
+              {locations.map((location) => (
+                <button
+                  type="button"
+                  key={`${location.type}:${location.value}`}
+                  onClick={() => {
+                    onLocationSelect(location)
+                    setShowSuggestions(false)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-control p-2 text-left text-sm hover:bg-muted"
+                >
+                  <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate">{location.value}</span>
+                  <span className="text-xs text-muted-foreground">({location.type})</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t pt-3">

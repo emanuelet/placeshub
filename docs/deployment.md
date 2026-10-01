@@ -9,13 +9,12 @@ not the Worker URL. `placeshub-web.pages.dev` remains a Pages alias.
 
 ## 1. Prepare hosted services
 
-1. Create a hosted Supabase project. Apply
-   `packages/db/supabase/001-initial.sql`, `002-google-sync.sql`, and
-   `003-place-source-keys.sql`, and `004-mcp-api-keys.sql` in order to the
-   **hosted** database. The local `supabase/config.toml` configures local
-   development, not hosted auth. Then run
-   `pnpm --filter @placeshub/db run db:migrate` using the intended hosted
-   database connection.
+1. Create a hosted Supabase project. Apply the four bootstrap scripts in
+   `packages/db/supabase/` (`001` through `004`) in order to the **hosted**
+   database. No Drizzle migrations are currently checked in; `db:migrate` does
+   not apply the bootstrap SQL. The local `supabase/config.toml` configures
+   local development, not hosted auth. See
+   [Database migrations](../README.md#database-migrations).
 2. Enable Places API (New) in Google Cloud and obtain a server-side API key.
    Restrict the key to that API. Obtain a public Mapbox token.
 3. Set Supabase Auth's Site URL to `https://placeshub.org` and allow that origin
@@ -97,8 +96,9 @@ binding are configured; they do not reach production data.
    `API service binding is not configured` means the Pages production binding
    did not apply. Plain `/api` should return an API response, not the SPA HTML.
 2. Direct navigation and refresh of `/dashboard`, `/collections`, and
-   `/settings` load the SPA. `apps/web/public/_routes.json` limits Function
-   invocations to `/api` routes; static assets remain static.
+   `/settings` load the SPA; signed-out visitors return to the marketing page.
+   Public `/share/:slug` and `/privacy` remain accessible. The `_routes.json`
+   file limits Function invocations to `/api` routes; static assets remain static.
 3. Sign in using the hosted Supabase project and load collections. If the API
    cannot connect to Postgres, check the pooler URL, TLS, and hosted migrations.
 4. In the extension's Settings, enter the **Pages origin** and a key generated
@@ -108,10 +108,14 @@ binding are configured; they do not reach production data.
    using `https://placeshub.org/api/mcp` and `Authorization: Bearer <key>` can
    list tools without a session ID. Revoking the key blocks its next request.
 
-For local development, `pnpm dev` still uses Vite's `/api` proxy to the local
-Worker. To test the production Pages Function locally, run `pnpm dev` first and
-then run `pnpm --filter @placeshub/web exec wrangler pages dev dist --service
-API=placeshub-api --port 8799` from another terminal after building the web
-app. `http://localhost:8799/api/health` should return `{"status":"ok"}`.
-Do not deploy a locally built `dist` containing local `.env.local` values; let
-Pages build with its production variables.
+For local development, `pnpm dev` uses Vite's `/api` proxy to the local Worker.
+To test the Pages Function locally, build the web app and run the following in
+a separate terminal while the API Worker is running:
+
+```sh
+pnpm --filter @placeshub/web exec wrangler pages dev dist --service API=placeshub-api --port 8799
+```
+
+`http://localhost:8799/api/health` should return `{"status":"ok"}`. Do not
+deploy a locally built `dist` containing local `.env.local` values; let Pages
+build with its production variables.

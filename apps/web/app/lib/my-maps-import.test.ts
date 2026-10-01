@@ -1,5 +1,4 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
 import { parseMyMapsFile, parseMyMapsKml } from './my-maps-import'
 
@@ -33,23 +32,26 @@ describe('Google My Maps import', () => {
     expect((await parseMyMapsFile(file)).places).toHaveLength(2)
   })
 
-  it('imports the provided KMZ, ignoring bundled icon images', async () => {
-    const bytes = readFileSync(resolve(process.cwd(), '../../Bali.kmz'))
+  it('imports a KMZ, ignoring bundled icon images', async () => {
+    const archive = new JSZip()
+    archive.file('doc.kml', simpleKml)
+    archive.file('images/pin.png', new Uint8Array([137, 80, 78, 71]))
+    const bytes = await archive.generateAsync({ type: 'uint8array' })
     const file = {
-      name: 'Bali.kmz',
+      name: 'weekend.kmz',
       size: bytes.byteLength,
-      arrayBuffer: async () => Uint8Array.from(bytes).buffer,
+      arrayBuffer: async () => bytes.buffer,
     } as File
     const result = await parseMyMapsFile(file)
-    expect(result.title).toBe('Bali')
-    expect(result.places).toHaveLength(42)
-    expect(result.skipped).toBe(0)
+    expect(result.title).toBe('Weekend')
+    expect(result.places).toHaveLength(2)
+    expect(result.skipped).toBe(2)
     expect(
       result.places.every(
         (pin) => pin.name && Number.isFinite(pin.lat) && Number.isFinite(pin.lng),
       ),
     ).toBe(true)
-    expect(result.places.filter((pin) => pin.notes)).toHaveLength(39)
+    expect(result.places.filter((pin) => pin.notes)).toHaveLength(1)
   })
 
   it('rejects malformed and empty maps', () => {

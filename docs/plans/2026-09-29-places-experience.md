@@ -1,5 +1,8 @@
 # Places experience implementation plan
 
+Historical plan from 2026-09-29. For current setup and behavior, see the
+[README](../../README.md); this plan records the original design decisions.
+
 ## Scope and decisions
 
 - App Settings has Google Sync and Appearance tabs. Preserve old `/sync` links. Appearance stores the left/right position of the place-list and details sidebar locally, like the current theme preference.
@@ -19,4 +22,4 @@
 ## Verification
 
 - Web and extension tests: creation dialog, manual-only mutations, selection/details/highlight, search results and errors, optional collection membership, personal notes, Options save/connect, and bulk remove.
-- Typecheck, lint/check, production build; inspect phone, tablet and desktop layouts and touch targets. Preserve unrelated work in `apps/web/vite.config.ts`.
+- Typecheck, lint/check, production build; inspect phone, tablet and desktop layouts and touch targets.

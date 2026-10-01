@@ -64,6 +64,43 @@ function Landing() {
         ))}
       </section>
 
+      <section aria-labelledby="app-preview-heading" className="space-y-5">
+        <div className="space-y-2 text-center">
+          <h2 id="app-preview-heading" className="ui-page-title">
+            Explore your places on a map
+          </h2>
+          <p className="text-muted-foreground">
+            Search saved places, curate collections, and import maps you already made.
+          </p>
+        </div>
+        <figure className="ui-panel overflow-hidden p-3 sm:p-4">
+          <img
+            src="/screenshots/dashboard.webp"
+            alt="PlacesHub dashboard with saved places and map pins side by side"
+            width="1440"
+            height="900"
+            loading="lazy"
+            className="h-auto w-full rounded-control"
+          />
+          <figcaption className="mt-3 text-sm text-muted-foreground">
+            Find your saved places in one searchable map.
+          </figcaption>
+        </figure>
+        <figure className="ui-panel overflow-hidden p-3 sm:p-4">
+          <img
+            src="/screenshots/my-maps-import.webp"
+            alt="PlacesHub import dialog for a Google My Maps KML or KMZ file"
+            width="1440"
+            height="900"
+            loading="lazy"
+            className="h-auto w-full rounded-control"
+          />
+          <figcaption className="mt-3 text-sm text-muted-foreground">
+            Bring Google My Maps point pins into an editable collection.
+          </figcaption>
+        </figure>
+      </section>
+
       <section aria-labelledby="extension-heading" className="space-y-5">
         <div className="space-y-2 text-center">
           <h2 id="extension-heading" className="ui-page-title">

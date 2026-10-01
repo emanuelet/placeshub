@@ -24,8 +24,8 @@ Git. For Firefox local testing, load `apps/extension/dist/firefox/manifest.json`
 from `about:debugging#/runtime/this-firefox` (temporary installation). For
 Chrome, load `apps/extension/dist/chrome/` unpacked in `chrome://extensions`.
 
-The shared version is `apps/extension/manifest.json` → `version` (currently
-`0.1.0`). Increase it before each store update; do not change the Firefox ID
+The shared version is `apps/extension/manifest.json` → `version`. Increase it
+before each store update; do not change the Firefox ID
 `placeshub-sync@emanuelet.github.io` after the first AMO submission. Firefox
 requires version 142 or later for the declared data-collection permissions.
 
@@ -46,20 +46,20 @@ requires version 142 or later for the declared data-collection permissions.
   server. Validate the exact ZIP with `web-ext lint` before submitting. AMO
   signs accepted extensions; do not distribute the unsigned ZIP as a normal
   installable XPI.
-- **Privacy URL:** Publish the web app's public `/privacy` page first and use
-  `https://placeshub.org/privacy` in both store listings. Review its
-  wording against the final hosted data-handling policy and provide a real
-  support contact in the listings. The extension key stays local until used to
-  authenticate a sync; disconnect clears its local storage, while revoking a
-  key in PlacesHub blocks future uploads.
+- **Privacy URL:** Use the public `https://placeshub.org/privacy` page in both
+  store listings. Review its wording against the final hosted data-handling
+  policy and provide a real support contact in the listings. The extension key
+  stays local until used to authenticate a sync; disconnect clears its local
+  storage, while revoking a key in PlacesHub blocks future uploads.
 
-Before submission, use `https://placeshub.org` in extension settings and
-test install → connect → capture list and place details → sync → revoke on
-both browsers using a signed-in Google Maps account. Google Maps' list APIs
-are undocumented; the previously reported **Favorite places** response-format
-error must be resolved with a real captured response before claiming that list
-is supported in either store. Neither package is submitted or signed by the
-build commands above.
+Before submission, use `https://placeshub.org` in extension settings and test
+install → connect → capture list and place details → sync → revoke on both
+browsers using a signed-in Google Maps account. Google Maps' list APIs are
+undocumented; verify **Favorite places** with a real captured response before
+claiming that list works in either store. The sample-data popup screenshot in
+`apps/web/public/screenshots/` is a marketing preview, not a store screenshot
+of a real sync. Neither package is submitted or signed by the build commands
+above.
 
 Installing a store release alongside the old unpacked Chrome extension creates
 a separate extension identity and local storage. Reconnect the released version
