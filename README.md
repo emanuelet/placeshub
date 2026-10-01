@@ -1,6 +1,17 @@
 # PlacesHub
 
-Personal Spatial CRM for curated Google Maps place bookmarks with public sharing via map + KML export.
+PlacesHub brings saved Google Maps places into one map. Sync lists with the Chrome
+or Firefox extension, organise places into collections with notes, and share a
+public map or export KML.
+
+**Website:** [placeshub.org](https://placeshub.org) · **Extension setup:**
+[Chrome and Firefox instructions](#google-maps-list-sync-chrome-and-firefox-extensions)
+
+### Extension preview
+
+| Select lists and see sync results (example data) | Connect with a revocable extension key |
+| --- | --- |
+| ![PlacesHub extension popup showing selected lists and example sync results](apps/web/public/screenshots/extension-popup.png) | ![PlacesHub extension settings with site address and extension key fields](apps/web/public/screenshots/extension-settings.png) |
 
 ## Stack
 
@@ -83,8 +94,9 @@ SELECT id, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at;
 
 ## Google Maps list sync (Chrome and Firefox extensions)
 
-The extension also builds for Firefox. See [extension publishing](docs/extension-publishing.md)
-for separate Chrome/Firefox packages, installation and store requirements.
+The same extension builds for Chrome and Firefox. Install it locally using the
+steps below; store downloads are not published yet. See
+[extension publishing](docs/extension-publishing.md) for package and store requirements.
 
 1. For a new database, apply all four legacy SQL scripts as described in **Database migrations** above.
 2. Build both packages with `pnpm --filter @placeshub/extension build`. In Chrome, open `chrome://extensions`, enable Developer mode and **Load unpacked** from `apps/extension/dist/chrome`. In Firefox, open `about:debugging#/runtime/this-firefox` and load `apps/extension/dist/firefox/manifest.json` temporarily.
