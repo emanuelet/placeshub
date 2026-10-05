@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" width="440" height="280" role="img" aria-label="PlacesHub Google Maps Sync promotional tile">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#172033"/>
+      <stop offset="1" stop-color="#223f91"/>
+    </linearGradient>
+    <linearGradient id="route" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#8fa4ff"/>
+      <stop offset="1" stop-color="#f9a46b"/>
+    </linearGradient>
+  </defs>
+  <rect width="440" height="280" fill="url(#background)"/>
+  <path d="M0 218 72 173 127 209 202 156 276 180 353 111 440 130M0 119 64 85 110 100 190 45 274 65 352 23 440 56" fill="none" stroke="#8fa4ff" stroke-opacity=".15" stroke-width="2"/>
+  <path d="M270 210C316 192 343 188 370 155" fill="none" stroke="url(#route)" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 9"/>
+  <circle cx="277" cy="207" r="8" fill="#8fa4ff"/>
+  <circle cx="367" cy="155" r="8" fill="#f9a46b"/>
+  <rect x="30" y="33" width="52" height="52" rx="13" fill="#3155d9"/>
+  <path d="M56 76S43 65 43 56a13 13 0 0 1 26 0C69 65 56 76 56 76Z" fill="white"/>
+  <circle cx="56" cy="56" r="5" fill="#ea580c"/>
+  <text x="98" y="68" fill="white" font-family="Arial, sans-serif" font-size="21" font-weight="700">PlacesHub</text>
+  <text x="30" y="142" fill="white" font-family="Arial, sans-serif" font-size="31" font-weight="700">Your saved places.</text>
+  <text x="30" y="179" fill="#bdc9e3" font-family="Arial, sans-serif" font-size="26">One shareable map.</text>
+  <text x="30" y="243" fill="#9eb2e0" font-family="Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="1.5">GOOGLE MAPS LIST SYNC</text>
+</svg>

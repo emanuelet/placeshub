@@ -56,7 +56,9 @@ extensionApi.webRequest.onBeforeRequest.addListener(
 )
 
 async function initialize() {
-  await extensionApi.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
+  if (extensionApi.storage.local.setAccessLevel) {
+    await extensionApi.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
+  }
   if (!(await extensionApi.alarms.get(ALARM)))
     await extensionApi.alarms.create(ALARM, { periodInMinutes: 60 })
 }
