@@ -97,6 +97,44 @@
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.2), 0 12px 30px rgb(0 0 0 / 0.24);
 }
 
+#root[data-palette="teal"] {
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+  --color-accent: #92400e;
+  --color-accent-hover: #78350f;
+  --color-accent-surface: #fffbeb;
+  --color-ring: #2dd4bf;
+  --color-brand-50: #f0fdfa;
+  --color-brand-700: #115e59;
+}
+
+#root.dark[data-palette="teal"] {
+  --color-primary: #5eead4;
+  --color-primary-hover: #99f6e4;
+  --color-accent: #fcd34d;
+  --color-accent-hover: #fde68a;
+  --color-accent-surface: #2b2110;
+}
+
+#root[data-palette="purple"] {
+  --color-primary: #7e22ce;
+  --color-primary-hover: #6b21a8;
+  --color-accent: #be123c;
+  --color-accent-hover: #9f1239;
+  --color-accent-surface: #fff1f2;
+  --color-ring: #c084fc;
+  --color-brand-50: #faf5ff;
+  --color-brand-700: #6b21a8;
+}
+
+#root.dark[data-palette="purple"] {
+  --color-primary: #d8b4fe;
+  --color-primary-hover: #e9d5ff;
+  --color-accent: #fda4af;
+  --color-accent-hover: #fecdd3;
+  --color-accent-surface: #321b27;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

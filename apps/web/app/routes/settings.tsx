@@ -20,6 +20,7 @@ export const Route = createFileRoute('/settings')({
 function Settings() {
   const { tab } = Route.useSearch()
   const [side, setSide] = useLocalStorage<'left' | 'right'>('sidebar-side', 'right')
+  const [palette, setPalette] = useLocalStorage('palette', 'blue')
 
   return (
     <div className="space-y-5">
@@ -66,6 +67,39 @@ function Settings() {
         <SnapshotSettings />
       ) : (
         <section className="ui-panel space-y-4 p-5" aria-labelledby="sidebar-heading">
+          <fieldset className="space-y-3 border-b pb-4">
+            <legend className="ui-section-title">UI colour combination</legend>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { value: 'blue', label: 'Blue & orange', colors: ['#3155d9', '#c2410c'] },
+                { value: 'teal', label: 'Teal & amber', colors: ['#0f766e', '#92400e'] },
+                { value: 'purple', label: 'Purple & rose', colors: ['#7e22ce', '#be123c'] },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className="flex min-h-11 cursor-pointer items-center gap-2 rounded-control border bg-surface px-3"
+                >
+                  <input
+                    type="radio"
+                    name="palette"
+                    value={option.value}
+                    checked={palette === option.value}
+                    onChange={() => setPalette(option.value)}
+                  />
+                  <span className="flex gap-1" aria-hidden="true">
+                    {option.colors.map((color) => (
+                      <span
+                        key={color}
+                        className="h-4 w-4 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </span>
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <h2 id="sidebar-heading" className="ui-section-title">
             Sidebar position
           </h2>

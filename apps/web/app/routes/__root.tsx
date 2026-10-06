@@ -18,6 +18,7 @@ import { queryClient } from '@/lib/query'
 
 function ThemeToggle() {
   const [isDark, setIsDark] = useLocalStorage('theme', 'system')
+  const [palette] = useLocalStorage('palette', 'blue')
   const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)')
 
   const isDarkMode = isDark === 'dark' || (isDark === 'system' && systemPrefersDark)
@@ -26,7 +27,8 @@ function ThemeToggle() {
     const root = document.getElementById('root')
     if (!root) return
     root.classList.toggle('dark', isDarkMode)
-  }, [isDarkMode])
+    root.dataset.palette = ['teal', 'purple'].includes(palette) ? palette : 'blue'
+  }, [isDarkMode, palette])
 
   const toggle = () => {
     setIsDark((prev) => {
