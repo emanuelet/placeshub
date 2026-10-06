@@ -1,13 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import {
-  Clock3,
-  ExternalLink,
-  Globe2,
-  MapPin,
-  Pencil,
-  Phone,
-  Star,
-  X,
+	Clock3,
+	ExternalLink,
+	Globe2,
+	MapPin,
+	Pencil,
+	Phone,
+	Star,
+	X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { type Place, useUpdateSavedPlace } from "@/hooks/usePlaces";
@@ -16,355 +16,355 @@ import { formatDate } from "@/lib/date";
 type DetailedPlace = Pick<Place, "id" | "name"> & Partial<Place>;
 
 function externalUrl(value: string | null | undefined) {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return ["https:", "http:"].includes(url.protocol) ? url.href : null;
-  } catch {
-    return null;
-  }
+	if (!value) return null;
+	try {
+		const url = new URL(value);
+		return ["https:", "http:"].includes(url.protocol) ? url.href : null;
+	} catch {
+		return null;
+	}
 }
 
 function googleMapsLink(place: DetailedPlace) {
-  const known = externalUrl(place.googleMapsUri);
-  if (known) return known;
-  const query =
-    place.lat != null && place.lng != null
-      ? `${place.lat},${place.lng}`
-      : [place.name, place.address].filter(Boolean).join(", ");
-  const url = new URL("https://www.google.com/maps/search/");
-  url.searchParams.set("api", "1");
-  url.searchParams.set("query", query);
-  if (place.googlePlaceId && !/^(maps|mymaps):/.test(place.googlePlaceId)) {
-    url.searchParams.set("query_place_id", place.googlePlaceId);
-  }
-  return url.href;
+	const known = externalUrl(place.googleMapsUri);
+	if (known) return known;
+	const query =
+		place.lat != null && place.lng != null
+			? `${place.lat},${place.lng}`
+			: [place.name, place.address].filter(Boolean).join(", ");
+	const url = new URL("https://www.google.com/maps/search/");
+	url.searchParams.set("api", "1");
+	url.searchParams.set("query", query);
+	if (place.googlePlaceId && !/^(maps|mymaps):/.test(place.googlePlaceId)) {
+		url.searchParams.set("query_place_id", place.googlePlaceId);
+	}
+	return url.href;
 }
 
 export function PlaceDetails({
-  place,
-  personalNotes,
-  importedNotes,
-  importedNotesLabel = "Google list note",
-  collections,
-  savedPlaceId,
-  onClose,
+	place,
+	personalNotes,
+	importedNotes,
+	importedNotesLabel = "Google list note",
+	collections,
+	savedPlaceId,
+	onClose,
 }: {
-  place: DetailedPlace;
-  personalNotes?: string | null;
-  importedNotes?: string | null;
-  importedNotesLabel?: string;
-  collections?: {
-    id: string;
-    title: string;
-    notes: string | null;
-    syncedFromGoogle?: boolean;
-  }[];
-  savedPlaceId?: string | null;
-  onClose: () => void;
+	place: DetailedPlace;
+	personalNotes?: string | null;
+	importedNotes?: string | null;
+	importedNotesLabel?: string;
+	collections?: {
+		id: string;
+		title: string;
+		notes: string | null;
+		syncedFromGoogle?: boolean;
+	}[];
+	savedPlaceId?: string | null;
+	onClose: () => void;
 }) {
-  const meta = place.metadata;
-  const categories = [...(meta?.category ?? []), ...(place.types ?? [])]
-    .map((value) => value.trim().replaceAll("_", " "))
-    .filter(
-      (value, index, values) =>
-        value &&
-        values.findIndex(
-          (item) => item.toLowerCase() === value.toLowerCase(),
-        ) === index,
-    );
-  return (
-    <aside
-      className="ui-panel flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-5 lg:h-full [&>*]:shrink-0"
-      aria-label="Place details"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="text-lg font-bold break-words">{place.name}</h2>
-        <button
-          type="button"
-          className="ui-button ui-button-quiet shrink-0 px-2"
-          onClick={onClose}
-          aria-label="Close place details"
-        >
-          <X className="h-5 w-5" aria-hidden="true" />
-        </button>
-      </div>
-      {meta?.imageUrl && externalUrl(meta.imageUrl) && (
-        <img
-          src={meta.imageUrl}
-          alt={place.name}
-          className="h-40 w-full rounded-control object-cover"
-        />
-      )}
-      <a
-        href={googleMapsLink(place)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="ui-button ui-button-secondary w-full gap-2"
-      >
-        <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-        View on Google Maps
-        <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
-      </a>
-      <div className="space-y-2 text-sm break-words">
-        {place.address && (
-          <p className="flex items-start gap-2">
-            <MapPin
-              className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            {place.address}
-          </p>
-        )}
-        {place.rating != null && (
-          <p className="flex items-center gap-2">
-            <Star
-              className="h-4 w-4 shrink-0 fill-accent text-accent"
-              aria-hidden="true"
-            />
-            {place.rating}
-            {meta?.reviewCount != null ? ` (${meta.reviewCount} reviews)` : ""}
-          </p>
-        )}
-        {categories.length ? <p>{categories.join(" · ")}</p> : null}
-        {meta?.businessStatus && (
-          <p>Status: {meta.businessStatus.replaceAll("_", " ")}</p>
-        )}
-        {meta?.priceLevel && (
-          <p>Price: {meta.priceLevel.replaceAll("_", " ")}</p>
-        )}
-        {place.phone && (
-          <p className="flex items-center gap-2">
-            <Phone
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <a href={`tel:${place.phone}`} className="text-primary underline">
-              {place.phone}
-            </a>
-          </p>
-        )}
-        {place.website && externalUrl(place.website) && (
-          <p className="flex items-center gap-2">
-            <Globe2
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <a
-              href={externalUrl(place.website) ?? undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              Website
-            </a>
-          </p>
-        )}
-        {meta?.hours?.length ? (
-          <details key={place.id} open>
-            <summary className="cursor-pointer font-semibold">
-              <span className="inline-flex items-center gap-2 align-middle">
-                <Clock3
-                  className="h-4 w-4 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                Opening hours
-              </span>
-            </summary>
-            <div className="mt-2">
-              {meta.hours.map(({ day, hours }) => (
-                <p key={day}>
-                  {day}: {hours}
-                </p>
-              ))}
-            </div>
-          </details>
-        ) : null}
-        {meta?.plusCode && <p>Plus code: {meta.plusCode}</p>}
-        {meta?.city && <p>City: {meta.city}</p>}
-        {meta?.state && <p>State: {meta.state}</p>}
-        {meta?.postalCode && <p>Postal code: {meta.postalCode}</p>}
-        {meta?.country && <p>Country: {meta.country}</p>}
-      </div>
-      {collections && (
-        <section
-          className="space-y-2 border-t pt-3 text-sm"
-          aria-label="Collections"
-        >
-          <h3 className="font-semibold">Collections</h3>
-          {collections.length ? (
-            collections.map((collection) => (
-              <div key={collection.id} className="break-words">
-                <Link
-                  to="/collections/$collectionId"
-                  params={{ collectionId: collection.id }}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {collection.title}
-                </Link>
-                {collection.notes && (
-                  <CollectionNote
-                    label={
-                      collection.syncedFromGoogle
-                        ? "Google list note"
-                        : "Collection note"
-                    }
-                    notes={collection.notes}
-                  />
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="text-muted-foreground">Not in a collection.</p>
-          )}
-        </section>
-      )}
-      {(savedPlaceId || personalNotes || importedNotes) && (
-        <div className="space-y-2 border-t pt-3 text-sm">
-          {importedNotes && (
-            <CollectionNote label={importedNotesLabel} notes={importedNotes} />
-          )}
-          {savedPlaceId ? (
-            <EditablePersonalNotes
-              key={place.id}
-              savedPlaceId={savedPlaceId}
-              notes={personalNotes}
-            />
-          ) : personalNotes ? (
-            <p className="whitespace-pre-wrap break-words text-muted-foreground">
-              {personalNotes}
-            </p>
-          ) : null}
-        </div>
-      )}
-      <div className="mt-auto space-y-2 pt-4 text-sm">
-        {meta?.dateAdded && (
-          <p className="text-muted-foreground">
-            Added: {formatDate(meta.dateAdded)}
-          </p>
-        )}
-        {meta?.dateUpdated && (
-          <p className="text-muted-foreground">
-            Updated: {formatDate(meta.dateUpdated)}
-          </p>
-        )}
-        {(place.lat != null || place.lng != null) && (
-          <details key={place.id} className="border-t pt-3 text-sm">
-            <summary className="cursor-pointer font-semibold">
-              Coordinates
-            </summary>
-            <dl className="mt-2 grid grid-cols-2 gap-2">
-              <dt>Latitude</dt>
-              <dd>{place.lat ?? "Unavailable"}</dd>
-              <dt>Longitude</dt>
-              <dd>{place.lng ?? "Unavailable"}</dd>
-            </dl>
-          </details>
-        )}
-      </div>
-    </aside>
-  );
+	const meta = place.metadata;
+	const categories = [...(meta?.category ?? []), ...(place.types ?? [])]
+		.map((value) => value.trim().replaceAll("_", " "))
+		.filter(
+			(value, index, values) =>
+				value &&
+				values.findIndex(
+					(item) => item.toLowerCase() === value.toLowerCase(),
+				) === index,
+		);
+	return (
+		<aside
+			className="ui-panel flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-5 lg:h-full [&>*]:shrink-0"
+			aria-label="Place details"
+		>
+			<div className="flex items-start justify-between gap-2">
+				<h2 className="text-lg font-bold break-words">{place.name}</h2>
+				<button
+					type="button"
+					className="ui-button ui-button-quiet shrink-0 px-2"
+					onClick={onClose}
+					aria-label="Close place details"
+				>
+					<X className="h-5 w-5" aria-hidden="true" />
+				</button>
+			</div>
+			{meta?.imageUrl && externalUrl(meta.imageUrl) && (
+				<img
+					src={meta.imageUrl}
+					alt={place.name}
+					className="h-40 w-full rounded-control object-cover"
+				/>
+			)}
+			<a
+				href={googleMapsLink(place)}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="ui-button ui-button-secondary w-full gap-2"
+			>
+				<MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+				View on Google Maps
+				<ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+			</a>
+			<div className="space-y-2 text-sm break-words">
+				{place.address && (
+					<p className="flex items-start gap-2">
+						<MapPin
+							className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+							aria-hidden="true"
+						/>
+						{place.address}
+					</p>
+				)}
+				{place.rating != null && (
+					<p className="flex items-center gap-2">
+						<Star
+							className="h-4 w-4 shrink-0 fill-accent text-accent"
+							aria-hidden="true"
+						/>
+						{place.rating}
+						{meta?.reviewCount != null ? ` (${meta.reviewCount} reviews)` : ""}
+					</p>
+				)}
+				{categories.length ? <p>{categories.join(" · ")}</p> : null}
+				{meta?.businessStatus && (
+					<p>Status: {meta.businessStatus.replaceAll("_", " ")}</p>
+				)}
+				{meta?.priceLevel && (
+					<p>Price: {meta.priceLevel.replaceAll("_", " ")}</p>
+				)}
+				{place.phone && (
+					<p className="flex items-center gap-2">
+						<Phone
+							className="h-4 w-4 shrink-0 text-muted-foreground"
+							aria-hidden="true"
+						/>
+						<a href={`tel:${place.phone}`} className="text-primary underline">
+							{place.phone}
+						</a>
+					</p>
+				)}
+				{place.website && externalUrl(place.website) && (
+					<p className="flex items-center gap-2">
+						<Globe2
+							className="h-4 w-4 shrink-0 text-muted-foreground"
+							aria-hidden="true"
+						/>
+						<a
+							href={externalUrl(place.website) ?? undefined}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-primary underline"
+						>
+							Website
+						</a>
+					</p>
+				)}
+				{meta?.hours?.length ? (
+					<details key={place.id} open>
+						<summary className="cursor-pointer font-semibold">
+							<span className="inline-flex items-center gap-2 align-middle">
+								<Clock3
+									className="h-4 w-4 text-muted-foreground"
+									aria-hidden="true"
+								/>
+								Opening hours
+							</span>
+						</summary>
+						<div className="mt-2">
+							{meta.hours.map(({ day, hours }) => (
+								<p key={day}>
+									{day}: {hours}
+								</p>
+							))}
+						</div>
+					</details>
+				) : null}
+				{meta?.plusCode && <p>Plus code: {meta.plusCode}</p>}
+				{meta?.city && <p>City: {meta.city}</p>}
+				{meta?.state && <p>State: {meta.state}</p>}
+				{meta?.postalCode && <p>Postal code: {meta.postalCode}</p>}
+				{meta?.country && <p>Country: {meta.country}</p>}
+			</div>
+			{collections && (
+				<section
+					className="space-y-2 border-t pt-3 text-sm"
+					aria-label="Collections"
+				>
+					<h3 className="font-semibold">Collections</h3>
+					{collections.length ? (
+						collections.map((collection) => (
+							<div key={collection.id} className="break-words">
+								<Link
+									to="/collections/$collectionId"
+									params={{ collectionId: collection.id }}
+									className="font-medium text-primary hover:underline"
+								>
+									{collection.title}
+								</Link>
+								{collection.notes && (
+									<CollectionNote
+										label={
+											collection.syncedFromGoogle
+												? "Google list note"
+												: "Collection note"
+										}
+										notes={collection.notes}
+									/>
+								)}
+							</div>
+						))
+					) : (
+						<p className="text-muted-foreground">Not in a collection.</p>
+					)}
+				</section>
+			)}
+			{(savedPlaceId || personalNotes || importedNotes) && (
+				<div className="space-y-2 border-t pt-3 text-sm">
+					{importedNotes && (
+						<CollectionNote label={importedNotesLabel} notes={importedNotes} />
+					)}
+					{savedPlaceId ? (
+						<EditablePersonalNotes
+							key={place.id}
+							savedPlaceId={savedPlaceId}
+							notes={personalNotes}
+						/>
+					) : personalNotes ? (
+						<p className="whitespace-pre-wrap break-words text-muted-foreground">
+							{personalNotes}
+						</p>
+					) : null}
+				</div>
+			)}
+			<div className="mt-auto space-y-2 pt-4 text-sm">
+				{meta?.dateAdded && (
+					<p className="text-muted-foreground">
+						Added: {formatDate(meta.dateAdded)}
+					</p>
+				)}
+				{meta?.dateUpdated && (
+					<p className="text-muted-foreground">
+						Updated: {formatDate(meta.dateUpdated)}
+					</p>
+				)}
+				{(place.lat != null || place.lng != null) && (
+					<details key={place.id} className="border-t pt-3 text-sm">
+						<summary className="cursor-pointer font-semibold">
+							Coordinates
+						</summary>
+						<dl className="mt-2 grid grid-cols-2 gap-2">
+							<dt>Latitude</dt>
+							<dd>{place.lat ?? "Unavailable"}</dd>
+							<dt>Longitude</dt>
+							<dd>{place.lng ?? "Unavailable"}</dd>
+						</dl>
+					</details>
+				)}
+			</div>
+		</aside>
+	);
 }
 
 function CollectionNote({ label, notes }: { label: string; notes: string }) {
-  return (
-    <p className="whitespace-pre-wrap break-words">
-      <strong>{label}:</strong> {notes}
-    </p>
-  );
+	return (
+		<p className="whitespace-pre-wrap break-words">
+			<strong>{label}:</strong> {notes}
+		</p>
+	);
 }
 
 function EditablePersonalNotes({
-  savedPlaceId,
-  notes,
+	savedPlaceId,
+	notes,
 }: {
-  savedPlaceId: string;
-  notes?: string | null;
+	savedPlaceId: string;
+	notes?: string | null;
 }) {
-  const updateNotes = useUpdateSavedPlace();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(notes ?? "");
-  const [error, setError] = useState("");
+	const updateNotes = useUpdateSavedPlace();
+	const [editing, setEditing] = useState(false);
+	const [draft, setDraft] = useState(notes ?? "");
+	const [error, setError] = useState("");
 
-  useEffect(() => {
-    setDraft(notes ?? "");
-  }, [notes]);
+	useEffect(() => {
+		setDraft(notes ?? "");
+	}, [notes]);
 
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold">Personal notes</h3>
-        {!editing && (
-          <button
-            type="button"
-            className="ui-button ui-button-quiet"
-            onClick={() => setEditing(true)}
-          >
-            <Pencil className="mr-1 inline h-4 w-4" aria-hidden="true" /> Edit
-          </button>
-        )}
-      </div>
-      {editing ? (
-        <form
-          className="space-y-2"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            setError("");
-            try {
-              await updateNotes.mutateAsync({
-                id: savedPlaceId,
-                notes: draft.trim() || null,
-              });
-              setEditing(false);
-            } catch (reason) {
-              setError(
-                reason instanceof Error
-                  ? reason.message
-                  : "Couldn't save notes",
-              );
-            }
-          }}
-        >
-          <label htmlFor="personal-notes" className="ui-field-label">
-            Personal notes (optional)
-          </label>
-          <textarea
-            id="personal-notes"
-            className="ui-input"
-            rows={4}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          {error && (
-            <p role="alert" className="ui-alert-error">
-              {error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              disabled={updateNotes.isPending}
-              className="ui-button ui-button-primary"
-            >
-              Save notes
-            </button>
-            <button
-              type="button"
-              className="ui-button ui-button-secondary"
-              onClick={() => {
-                setDraft(notes ?? "");
-                setEditing(false);
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      ) : (
-        <p className="whitespace-pre-wrap break-words text-muted-foreground">
-          {notes || "No personal notes yet."}
-        </p>
-      )}
-    </div>
-  );
+	return (
+		<div className="space-y-2">
+			<div className="flex items-center justify-between gap-2">
+				<h3 className="font-semibold">Personal notes</h3>
+				{!editing && (
+					<button
+						type="button"
+						className="ui-button ui-button-quiet"
+						onClick={() => setEditing(true)}
+					>
+						<Pencil className="mr-1 inline h-4 w-4" aria-hidden="true" /> Edit
+					</button>
+				)}
+			</div>
+			{editing ? (
+				<form
+					className="space-y-2"
+					onSubmit={async (event) => {
+						event.preventDefault();
+						setError("");
+						try {
+							await updateNotes.mutateAsync({
+								id: savedPlaceId,
+								notes: draft.trim() || null,
+							});
+							setEditing(false);
+						} catch (reason) {
+							setError(
+								reason instanceof Error
+									? reason.message
+									: "Couldn't save notes",
+							);
+						}
+					}}
+				>
+					<label htmlFor="personal-notes" className="ui-field-label">
+						Personal notes (optional)
+					</label>
+					<textarea
+						id="personal-notes"
+						className="ui-input"
+						rows={4}
+						value={draft}
+						onChange={(event) => setDraft(event.target.value)}
+					/>
+					{error && (
+						<p role="alert" className="ui-alert-error">
+							{error}
+						</p>
+					)}
+					<div className="flex flex-wrap gap-2">
+						<button
+							type="submit"
+							disabled={updateNotes.isPending}
+							className="ui-button ui-button-primary"
+						>
+							Save notes
+						</button>
+						<button
+							type="button"
+							className="ui-button ui-button-secondary"
+							onClick={() => {
+								setDraft(notes ?? "");
+								setEditing(false);
+							}}
+						>
+							Cancel
+						</button>
+					</div>
+				</form>
+			) : (
+				<p className="whitespace-pre-wrap break-words text-muted-foreground">
+					{notes || "No personal notes yet."}
+				</p>
+			)}
+		</div>
+	);
 }

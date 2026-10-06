@@ -15,11 +15,11 @@ import {
 	listSavedPlaces,
 	manageCollection,
 	PlaceOperationError,
+	placeUpdateInput,
 	saveInput,
 	savePlaces,
-	placeUpdateInput,
-	updatePlace,
 	updateInput,
+	updatePlace,
 	updateSavedPlaces,
 	uuid,
 } from "../lib/mcp-places";
