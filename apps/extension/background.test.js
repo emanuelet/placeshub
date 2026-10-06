@@ -2,6 +2,56 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 for (const namespace of ['chrome', 'browser']) {
+  test(`initializes alarms on install and startup with ${namespace} storage`, async (t) => {
+    const originalChrome = globalThis.chrome
+    const originalBrowser = globalThis.browser
+    t.after(() => {
+      globalThis.chrome = originalChrome
+      globalThis.browser = originalBrowser
+    })
+
+    let onInstalled
+    let onStartup
+    const alarms = new Map()
+    const accessLevels = []
+    const api = {
+      webRequest: { onBeforeRequest: { addListener() {} } },
+      runtime: {
+        onInstalled: { addListener: (listener) => (onInstalled = listener) },
+        onStartup: { addListener: (listener) => (onStartup = listener) },
+        onMessage: { addListener() {} },
+      },
+      alarms: {
+        get: async (name) => alarms.get(name),
+        create: async (name, options) => alarms.set(name, options),
+        onAlarm: { addListener() {} },
+      },
+      storage: {
+        local:
+          namespace === 'chrome'
+            ? { setAccessLevel: async (options) => accessLevels.push(options) }
+            : {},
+      },
+    }
+    globalThis.chrome = namespace === 'chrome' ? api : undefined
+    globalThis.browser = namespace === 'browser' ? api : undefined
+
+    await import(`./background.js?startup=${namespace}`)
+    await onInstalled()
+    assert.deepEqual(alarms.get('sync-google-lists'), { periodInMinutes: 60 })
+    assert.equal(alarms.has('startup-google-sync'), false)
+
+    await onStartup()
+    assert.equal(alarms.size, 2)
+    assert.deepEqual(alarms.get('startup-google-sync'), { delayInMinutes: 0.5 })
+    assert.deepEqual(
+      accessLevels,
+      namespace === 'chrome'
+        ? [{ accessLevel: 'TRUSTED_CONTEXTS' }, { accessLevel: 'TRUSTED_CONTEXTS' }]
+        : [],
+    )
+  })
+
   test(`uses a captured request for each list with ${namespace} messaging`, async (t) => {
     const favoriteId = 'favoriteList_123456'
     const wantId = 'wantToGoList_123456'

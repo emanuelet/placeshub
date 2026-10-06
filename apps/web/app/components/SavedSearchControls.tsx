@@ -138,7 +138,7 @@ export function SavedSearchControls({
                     onLocationSelect(location)
                     setShowSuggestions(false)
                   }}
-                  className="flex w-full items-center gap-2 rounded-control p-2 text-left text-sm hover:bg-muted"
+                  className="ui-place-item flex w-full items-center gap-2 rounded-control p-2 text-left text-sm"
                 >
                   <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                   <span className="min-w-0 flex-1 truncate">{location.value}</span>

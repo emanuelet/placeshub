@@ -7,6 +7,7 @@ export interface SavedSearchPlace extends Place {
   personalNotes: string | null
   savedPlaceId: string | null
   tags: string[] | null
+  collections: { id: string; title: string; notes: string | null }[]
 }
 
 export interface SavedSearchParams {
@@ -25,7 +26,12 @@ export interface SavedSearchParams {
 
 export interface SavedSearchResponse {
   places: SavedSearchPlace[]
-  filters: { cities: string[]; countries: string[]; categories: string[]; tags: string[] }
+  filters: {
+    cities: string[]
+    countries: string[]
+    categories: string[]
+    tags: string[]
+  }
 }
 
 function queryString(params: SavedSearchParams) {

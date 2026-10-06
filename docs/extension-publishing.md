@@ -3,6 +3,8 @@
 One source tree in `apps/extension` produces two Manifest V3 packages. Chrome
 uses a service worker; Firefox uses a module background event page. Neither ZIP
 contains tests, development tooling, local credentials, or Google Maps data.
+The [store listing kit](store-listing/README.md) has draft copy, permission
+justifications, screenshots, a Chrome promotional tile and reviewer steps.
 
 ## Build and validate
 

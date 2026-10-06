@@ -7,10 +7,18 @@ const { savedPlaces } = vi.hoisted(() => ({
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: { component: unknown }) => opts,
-  Link: ({ children }: { children: React.ReactNode }) => children,
+  Link: ({
+    children,
+    params,
+  }: {
+    children: React.ReactNode
+    params?: { collectionId: string }
+  }) => <a href={params ? `/collections/${params.collectionId}` : '/auth/login'}>{children}</a>,
 }))
 
-vi.mock('usehooks-ts', () => ({ useDebounceValue: (value: string) => [value] }))
+vi.mock('usehooks-ts', () => ({
+  useDebounceValue: (value: string) => [value],
+}))
 
 vi.mock('@/hooks/usePlaces', () => ({
   toSavePlaceInput: vi.fn(),
@@ -19,7 +27,12 @@ vi.mock('@/hooks/usePlaces', () => ({
     isLoading: false,
     error: null,
   }),
-  useSavePlace: () => ({ mutateAsync: vi.fn(), isPending: false, isError: false }),
+  useSavePlace: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+  }),
+  useUpdateSavedPlace: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useSearchPlaces: () => ({ data: { places: [] }, isLoading: false }),
 }))
 
@@ -42,6 +55,7 @@ vi.mock('@/hooks/useSavedPlaceSearch', () => ({
             savedPlaceId: sp.id,
             personalNotes: sp.notes,
             notes: sp.notes,
+            collections: sp.collections ?? [],
           })),
         filters: { cities: [], countries: [], categories: [], tags: [] },
       },
@@ -52,7 +66,11 @@ vi.mock('@/hooks/useSavedPlaceSearch', () => ({
 }))
 
 vi.mock('@/hooks/useCollections', () => ({
-  useCollections: () => ({ data: { collections: [] }, isLoading: false, error: null }),
+  useCollections: () => ({
+    data: { collections: [] },
+    isLoading: false,
+    error: null,
+  }),
 }))
 
 vi.mock('@/lib/auth', () => ({ useAuth: () => ({ user: { id: 'user-1' } }) }))
@@ -123,5 +141,29 @@ describe('dashboard after Google-list reconciliation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add place' }))
     expect(screen.getByRole('dialog', { name: 'Add a place' })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Search Google Places' })).toBeInTheDocument()
+  })
+
+  it('shows collection membership and distinguishes collection notes from personal notes', () => {
+    savedPlaces.current = [
+      {
+        ...savedPlace('Cafe', true, []),
+        notes: 'Personal note',
+        collections: [
+          { id: 'trip', title: 'Trip', notes: 'Meet here' },
+          { id: 'food', title: 'Food', notes: null },
+        ],
+      },
+      savedPlace('Beach', true, []),
+    ]
+    const Dashboard = (Route as unknown as { component: React.ComponentType }).component
+    render(<Dashboard />)
+    expect(screen.getByText('Collection: Trip')).toBeInTheDocument()
+    expect(screen.queryByText('Collection note: Meet here')).not.toBeInTheDocument()
+    expect(screen.queryByText('No collection notes.')).not.toBeInTheDocument()
+    expect(screen.getByText('Not in a collection.')).toBeInTheDocument()
+    expect(screen.getByText('Personal note')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Cafe/ }))
+    expect(screen.getByText('Collection note:').parentElement).toHaveTextContent('Meet here')
+    expect(screen.getByRole('link', { name: 'Trip' })).toHaveAttribute('href', '/collections/trip')
   })
 })

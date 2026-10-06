@@ -36,6 +36,8 @@
           const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
           const isDark = stored === 'dark' || (stored !== 'light' && systemDark)
           if (isDark) document.getElementById('root')?.classList.add('dark')
+          const palette = JSON.parse(localStorage.getItem('palette') || '"blue"')
+          document.getElementById('root').dataset.palette = ['teal', 'purple'].includes(palette) ? palette : 'blue'
         } catch {}
       })()
     </script>

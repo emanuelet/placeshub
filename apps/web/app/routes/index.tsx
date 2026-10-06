@@ -140,7 +140,7 @@ function Landing() {
         </div>
         <div className="text-center">
           <a
-            href="https://github.com/emanuelet/placeshub#google-maps-list-sync-chrome-and-firefox-extensions"
+            href="https://github.com/emanuelet/placeshub/blob/main/docs/list-sync.md"
             className={buttonClass('secondary', 'min-h-11 px-6')}
           >
             Chrome &amp; Firefox install instructions

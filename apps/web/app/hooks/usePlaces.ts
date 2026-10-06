@@ -100,6 +100,7 @@ export function useSavePlace() {
       queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
       queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
       if (body.collectionId) {
+        queryClient.invalidateQueries({ queryKey: ['collections'] })
         queryClient.invalidateQueries({ queryKey: ['collection', body.collectionId] })
       }
     },

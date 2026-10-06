@@ -28,10 +28,11 @@ function Privacy() {
         <h2 className="ui-section-title">Data kept in your browser</h2>
         <p>
           The extension stores your PlacesHub address and key, list selection, recent sync results,
-          and Google Maps request templates in extension storage. This storage is restricted to
-          trusted extension pages. Disconnecting in extension settings clears these local values and
-          removes the PlacesHub site permission. Revoke the key in PlacesHub Settings → Google Sync
-          to prevent further uploads with it.
+          and Google Maps request templates in extension storage, not in the Google Maps website. On
+          supported Chrome versions, the extension restricts this storage to trusted extension
+          contexts; Firefox does not provide that restriction. Disconnecting in extension settings
+          clears these local values and removes the PlacesHub site permission. Revoke the key in
+          PlacesHub Settings → Google Sync to prevent further uploads with it.
         </p>
       </section>
       <section className="space-y-2">

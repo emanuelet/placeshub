@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowRightLeft, Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { MovePlacesDialog } from '@/components/MovePlacesDialog'
 import { PlaceDetails } from '@/components/PlaceDetails'
 import { SavedSearchControls } from '@/components/SavedSearchControls'
+import { SnapshotDialog } from '@/components/SnapshotDialog'
 import {
   useBulkRemovePlacesFromCollection,
   useCollection,
@@ -13,7 +14,6 @@ import {
   useUpdateCollection,
 } from '@/hooks/useCollections'
 import { useSavedPlaceSearch } from '@/hooks/useSavedPlaceSearch'
-import { useCreateShare } from '@/hooks/useShares'
 import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
@@ -29,12 +29,11 @@ function CollectionDetail() {
   const bulkRemove = useBulkRemovePlacesFromCollection()
   const updateCollection = useUpdateCollection()
   const deleteCollection = useDeleteCollection()
-  const createShare = useCreateShare()
   const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [moveIds, setMoveIds] = useState<string[] | null>(null)
-  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [showSnapshotDialog, setShowSnapshotDialog] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -102,11 +101,6 @@ function CollectionDetail() {
     document.addEventListener('pointerdown', dismiss)
     return () => document.removeEventListener('pointerdown', dismiss)
   }, [])
-
-  const handleShare = async () => {
-    const { share } = await createShare.mutateAsync({ collectionId })
-    setShareUrl(`${window.location.origin}/share/${share.slug}`)
-  }
 
   const handleActionsKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'Escape') {
@@ -192,7 +186,18 @@ function CollectionDetail() {
           ) : (
             <div className="flex flex-wrap items-start gap-2">
               <div className="min-w-32 flex-1">
-                <h2 className="break-words text-lg font-bold tracking-tight">{collection.title}</h2>
+                <div className="flex items-start gap-2">
+                  <Link
+                    to="/collections"
+                    aria-label="Back to collections"
+                    className="ui-button ui-button-quiet shrink-0 px-2"
+                  >
+                    <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+                  </Link>
+                  <h2 className="break-words pt-2 text-lg font-bold tracking-tight">
+                    {collection.title}
+                  </h2>
+                </div>
                 {collection.description && (
                   <p className="break-words text-sm text-muted-foreground">
                     {collection.description}
@@ -281,14 +286,11 @@ function CollectionDetail() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => {
-                handleShare().catch(() => {})
-              }}
-              disabled={createShare.isPending}
+              onClick={() => setShowSnapshotDialog(true)}
               className="ui-button ui-button-secondary gap-1"
             >
               <Share2 className="h-4 w-4" aria-hidden="true" />
-              {createShare.isPending ? 'Sharing...' : 'Share snapshot'}
+              Share snapshot
             </button>
           </div>
         </div>
@@ -345,19 +347,8 @@ function CollectionDetail() {
             }}
           />
         )}
-        {shareUrl && (
-          <div className="ui-alert-success">
-            <p className="font-medium">Share link created:</p>
-            <a href={shareUrl} className="break-all text-primary underline">
-              {shareUrl}
-            </a>
-            <p className="text-xs">This snapshot does not update when the collection changes.</p>
-          </div>
-        )}
-        {createShare.isError && (
-          <p role="alert" className="ui-alert-error">
-            {createShare.error.message}
-          </p>
+        {showSnapshotDialog && (
+          <SnapshotDialog collectionId={collectionId} onClose={() => setShowSnapshotDialog(false)} />
         )}
         {(actionError || removePlace.error || bulkRemove.error) && (
           <p role="alert" className="ui-alert-error">
@@ -438,7 +429,7 @@ function CollectionDetail() {
           {collectionPlaces.map((cp) => (
             <div
               key={cp.id}
-              className={`flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.id ? 'border-primary bg-muted' : ''}`}
+              className={`ui-list-item flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.id ? 'border-primary bg-muted' : ''}`}
             >
               {manual && (
                 <input
@@ -458,7 +449,7 @@ function CollectionDetail() {
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
-                  className="w-full py-1 text-left"
+                  className="w-full rounded-control p-1 text-left"
                   aria-pressed={selectedId === cp.id}
                   onClick={() => {
                     setSelectedId(cp.id)

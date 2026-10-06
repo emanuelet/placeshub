@@ -11,6 +11,7 @@ export interface Collection {
   createdAt: string
   updatedAt: string
   syncedFromGoogle: boolean
+  placeCount?: number
 }
 
 export interface CollectionWithPlaces extends Collection {
@@ -125,6 +126,7 @@ export function useAddPlaceToCollection() {
         sortOrder,
       }),
     onSuccess: (_, { collectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
       queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
       queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
@@ -138,6 +140,7 @@ export function useRemovePlaceFromCollection() {
     mutationFn: ({ collectionId, placeId }: { collectionId: string; placeId: string }) =>
       api.delete<{ success: boolean }>(`/collections/${collectionId}/places/${placeId}`),
     onSuccess: (_, { collectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
       queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
       queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
@@ -153,6 +156,7 @@ export function useBulkRemovePlacesFromCollection() {
         placeIds,
       }),
     onSuccess: (_, { collectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
       queryClient.invalidateQueries({ queryKey: ['savedSearch'] })
       queryClient.invalidateQueries({ queryKey: ['savedLocations'] })
@@ -177,6 +181,7 @@ export function useMovePlacesToCollection() {
         { targetCollectionId, placeIds },
       ),
     onSuccess: (_, { collectionId, targetCollectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] })
       queryClient.invalidateQueries({ queryKey: ['collection', targetCollectionId] })
       queryClient.invalidateQueries({ queryKey: ['savedSearch'] })

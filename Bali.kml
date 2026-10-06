@@ -1,0 +1,742 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Bali</name>
+    <description>All the best</description>
+    <Style id="icon-1517-0288D1-normal">
+      <IconStyle>
+        <color>ffd18802</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1517-0288D1-highlight">
+      <IconStyle>
+        <color>ffd18802</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1517-0288D1">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1517-0288D1-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1517-0288D1-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1521-0288D1-normal">
+      <IconStyle>
+        <color>ffd18802</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1521-0288D1-highlight">
+      <IconStyle>
+        <color>ffd18802</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1521-0288D1">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1521-0288D1-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1521-0288D1-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1534-757575-normal">
+      <IconStyle>
+        <color>ff757575</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1534-757575-highlight">
+      <IconStyle>
+        <color>ff757575</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1534-757575">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1534-757575-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1534-757575-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1577-7CB342-normal">
+      <IconStyle>
+        <color>ff42b37c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1577-7CB342-highlight">
+      <IconStyle>
+        <color>ff42b37c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1577-7CB342">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1577-7CB342-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1577-7CB342-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1577-7CB342-nodesc-normal">
+      <IconStyle>
+        <color>ff42b37c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="icon-1577-7CB342-nodesc-highlight">
+      <IconStyle>
+        <color>ff42b37c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="icon-1577-7CB342-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1577-7CB342-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1577-7CB342-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1603-000000-normal">
+      <IconStyle>
+        <color>ff000000</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1603-000000-highlight">
+      <IconStyle>
+        <color>ff000000</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1603-000000">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1603-000000-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1603-000000-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1607-9C27B0-normal">
+      <IconStyle>
+        <color>ffb0279c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1607-9C27B0-highlight">
+      <IconStyle>
+        <color>ffb0279c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1607-9C27B0">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1607-9C27B0-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1607-9C27B0-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1651-E65100-normal">
+      <IconStyle>
+        <color>ff0051e6</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1651-E65100-highlight">
+      <IconStyle>
+        <color>ff0051e6</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1651-E65100">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1651-E65100-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1651-E65100-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1697-9C27B0-normal">
+      <IconStyle>
+        <color>ffb0279c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1697-9C27B0-highlight">
+      <IconStyle>
+        <color>ffb0279c</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1697-9C27B0">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1697-9C27B0-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1697-9C27B0-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Folder>
+      <name>Livello senza titolo</name>
+      <Placemark>
+        <name>KU DE TA</name>
+        <description>Beautiful place on the beach for a great aperitif at sunset, good music and nice people. For dinner it is advisable to go up one floor at the MEJEKAWI restaurant</description>
+        <styleUrl>#icon-1517-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.1547554,-8.6870993,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Plancha</name>
+        <description>Great aperitif at sunset, beautiful music and lots of nice people</description>
+        <styleUrl>#icon-1521-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.1597703,-8.6944351,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Favela Bali</name>
+        <description>Unmissable venue to see for its structure and its bizarre decor. Great for a drink after dinner</description>
+        <styleUrl>#icon-1517-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.1628709,-8.6839514,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Potato Head Beach Club</name>
+        <description>Beautiful place on the beach for a great aperitif at sunset, good music and nice people</description>
+        <styleUrl>#icon-1517-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.1500037,-8.6794167,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Mama San Bali</name>
+        <description>Excellent restaurant with Asian cuisine</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.164686,-8.682115,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[Boy'N'Cow]]></name>
+        <description>Fantastic restaurant for those who love grilled meat</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.164443,-8.682154,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Bottega Italiana Petitenget</name>
+        <description>Great for a handmade Italian style pasta dish, pleasant and relaxing environment</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1546197,-8.6771167,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Da Maria</name>
+        <description>Definitely the best Neapolitan type pizza in Bali. Good pasta dishes too</description>
+        <styleUrl>#icon-1651-E65100</styleUrl>
+        <Point>
+          <coordinates>
+            115.1622881,-8.6719335,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Barbacoa</name>
+        <description>Excellent grilled pork and other types of meat</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1629255,-8.6721269,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Sardine Restaurant</name>
+        <description>Refined setting of Italian / Asian fusion cuisine. Excellent service</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1626233,-8.6716268,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Sundari Day Spa</name>
+        <description>Elegant spa with accurate treatments. The quality of the massage is excellent.</description>
+        <styleUrl>#icon-1697-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.163278,-8.67176,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Bodyworks</name>
+        <description>Massages with excellent value for money. Very well organized</description>
+        <styleUrl>#icon-1697-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.1535416,-8.682443,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Jari Menari</name>
+        <description>The massage is exceptional. Sure to try</description>
+        <styleUrl>#icon-1697-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.166836,-8.684692,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>The Care Day Spa</name>
+        <description>Refined environment, excellent massage</description>
+        <styleUrl>#icon-1697-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.1643975,-8.6805476,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Merah Putih</name>
+        <description>Indonesian cuisine, refined surroundings and sophisticated cuisine</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.154491,-8.676927,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Nook</name>
+        <description>Beautiful environment overlooking the rice field. Good Indonesian cuisine for a good price</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.16113,-8.6694646,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Dahana Restaurant</name>
+        <description>For me this is the best Japanese restaurant in Bali.</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.156513,-8.67631,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Finns Beach Club</name>
+        <description>To spend a very comfortable day at the beach. Great service and a nice terrace with swimming pool. Also nice for an aperitif at sunset</description>
+        <styleUrl>#icon-1521-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.139351,-8.666988,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>The Savage Kitchen</name>
+        <description>Good for breakfast or a quick lunch</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.146598,-8.664269,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Peloton Supershop</name>
+        <description>Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.146672,-8.660993,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>KYND COMMUNITY</name>
+        <description>Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1567141,-8.6747648,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>The Avocado Factory Canggu</name>
+        <description>Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.130829,-8.652346,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Canteen Cafe</name>
+        <description>Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1307797,-8.6526413,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AMO SPA CENTER CANGGU</name>
+        <description>Multifunctional spa with aesthetics, manicure, pedicure and much more</description>
+        <styleUrl>#icon-1697-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.134484,-8.651323,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[Made's Banana Flour Co.]]></name>
+        <description>The best Bali pastry shop. Fantastic desserts made almost by hand</description>
+        <styleUrl>#icon-1534-757575</styleUrl>
+        <Point>
+          <coordinates>
+            115.1388991,-8.6481115,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Pizza Fabbrica</name>
+        <styleUrl>#icon-1577-7CB342-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            115.130769,-8.652445,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[Luigi's Hot Pizza]]></name>
+        <description>Very good pizza made in Napolitan style.</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.13372,-8.651312,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Baracca</name>
+        <description>Great Italian restaurant very good value for money</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1316655,-8.6513364,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Brisa Bali</name>
+        <description>Unmissable, Great for an aperitif at sunset</description>
+        <styleUrl>#icon-1517-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.124844,-8.654611,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Bottega Italiana Canggu</name>
+        <styleUrl>#icon-1577-7CB342-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            115.13234,-8.653211,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Bottega Italiana Berawa</name>
+        <description>Great place, you can choose 3 different restaurants menu sitting at the same table JAPANESE, PIZZERIA AND ITALIAN RESTAURANT </description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1396517,-8.6619068,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Tukan Beach</name>
+        <description>Small bar on the beach, great for an aperitif on Sunday before lunch:  Special offer oysters and wine</description>
+        <styleUrl>#icon-1517-0288D1</styleUrl>
+        <Point>
+          <coordinates>
+            115.1376289,-8.6650894,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Lifescrate</name>
+        <description>Very good for breakfast time, ricefield view ...cheap price</description>
+        <styleUrl>#icon-1534-757575</styleUrl>
+        <Point>
+          <coordinates>
+            115.1372807,-8.6487349,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Satu-Satu</name>
+        <description>Very good for breakfast</description>
+        <styleUrl>#icon-1534-757575</styleUrl>
+        <Point>
+          <coordinates>
+            115.1475505,-8.6557915,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Indigo</name>
+        <description>The best Japanese restaurant in Bali</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1484569,-8.6530898,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Casetta · Bali</name>
+        <description>Good Italian restaurant and Pizza, good price for value</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1525324,-8.6611402,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Warung el Passo</name>
+        <description>Good warung (Indonesian food) in a good location</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1295244,-8.6285785,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[07.AM Baker's Club]]></name>
+        <description>THE BEST BREAKFAST in BALI....believe me 😜</description>
+        <styleUrl>#icon-1534-757575</styleUrl>
+        <Point>
+          <coordinates>
+            115.1523761,-8.6562825,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Casa Luna</name>
+        <description>YOUR VILLA TO RENT in Bali</description>
+        <styleUrl>#icon-1603-000000</styleUrl>
+        <Point>
+          <coordinates>
+            115.1593959,-8.663323,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Dua Umalas</name>
+        <styleUrl>#icon-1577-7CB342-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            115.1567986,-8.6669814,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>La Baracca Bali (Seminyak)</name>
+        <description>Italian restaurant....cheap and good</description>
+        <styleUrl>#icon-1577-7CB342</styleUrl>
+        <Point>
+          <coordinates>
+            115.1624609,-8.6716594,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Ettore Gelato Umalas</name>
+        <description>The best gelato in Bali</description>
+        <styleUrl>#icon-1607-9C27B0</styleUrl>
+        <Point>
+          <coordinates>
+            115.1523801,-8.6564409,0
+          </coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Livello senza titolo</name>
+    </Folder>
+  </Document>
+</kml>

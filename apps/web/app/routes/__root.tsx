@@ -18,6 +18,7 @@ import { queryClient } from '@/lib/query'
 
 function ThemeToggle() {
   const [isDark, setIsDark] = useLocalStorage('theme', 'system')
+  const [palette] = useLocalStorage('palette', 'blue')
   const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)')
 
   const isDarkMode = isDark === 'dark' || (isDark === 'system' && systemPrefersDark)
@@ -26,7 +27,8 @@ function ThemeToggle() {
     const root = document.getElementById('root')
     if (!root) return
     root.classList.toggle('dark', isDarkMode)
-  }, [isDarkMode])
+    root.dataset.palette = ['teal', 'purple'].includes(palette) ? palette : 'blue'
+  }, [isDarkMode, palette])
 
   const toggle = () => {
     setIsDark((prev) => {
@@ -67,7 +69,7 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
         <button
           type="button"
           onClick={handleSignOut}
-          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto"
         >
           Sign out
         </button>
@@ -75,7 +77,7 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           to="/auth/login"
           onClick={onNavigate}
-          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto"
         >
           Sign in
         </Link>

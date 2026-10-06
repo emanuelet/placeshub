@@ -15,6 +15,11 @@ vi.mock('@tanstack/react-router', () => ({
     useParams: () => ({ collectionId: 'collection-1' }),
   }),
   useNavigate: () => vi.fn(),
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }))
 
 vi.mock('@/hooks/useCollections', () => ({
