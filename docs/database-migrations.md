@@ -2,13 +2,14 @@
 
 Run commands from the repository root. `packages/db/supabase/` contains the
 bootstrap scripts: `001-initial.sql`, `002-google-sync.sql`,
-`003-place-source-keys.sql`, and `004-mcp-api-keys.sql`. Apply all four **in order**
+`003-place-source-keys.sql`, `004-mcp-api-keys.sql`, `005-place-enrichment.sql`, and
+`006-api-request-usage.sql`, and `007-user-timezone.sql`. Apply all seven **in order**
 to a new database using `psql` or Supabase Studio's SQL editor.
 
 With `DATABASE_URL` exported for the intended database:
 
 ```sh
-for migration in packages/db/supabase/00[1-4]-*.sql; do
+for migration in packages/db/supabase/00[1-7]-*.sql; do
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration" || exit 1
 done
 ```

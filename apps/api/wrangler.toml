@@ -13,3 +13,6 @@ enabled = true
 # SUPABASE_URL = ""
 # SUPABASE_KEY = ""  # Supabase anon key, not the service role key
 # GOOGLE_PLACES_API_KEY = ""
+
+[triggers]
+crons = ["*/5 * * * *"]

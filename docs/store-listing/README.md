@@ -29,9 +29,9 @@ not installable packages. Nothing here has been submitted.
 > configure, using a revocable extension key. You can use placeshub.org or a
 > self-hosted HTTPS PlacesHub instance. See the [privacy policy](https://placeshub.org/privacy).
 
-**Website:** https://placeshub.org  
-**Privacy policy:** https://placeshub.org/privacy  
-**Source and support website:** https://github.com/emanuelet/placeshub/issues  
+**Website:** https://placeshub.org
+**Privacy policy:** https://placeshub.org/privacy
+**Source and support website:** https://github.com/emanuelet/placeshub/issues
 **Support email:** support@placeshub.org (verify delivery before submission)
 
 ## Store images

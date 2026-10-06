@@ -9,8 +9,8 @@ not the Worker URL. `placeshub-web.pages.dev` remains a Pages alias.
 
 ## 1. Prepare hosted services
 
-1. Create a hosted Supabase project. Apply the four bootstrap scripts in
-   `packages/db/supabase/` (`001` through `004`) in order to the **hosted**
+1. Create a hosted Supabase project. Apply the seven bootstrap scripts in
+   `packages/db/supabase/` (`001` through `007`) in order to the **hosted**
    database. No Drizzle migrations are currently checked in; `db:migrate` does
    not apply the bootstrap SQL. The local `supabase/config.toml` configures
    local development, not hosted auth. See
@@ -50,6 +50,9 @@ The API opens at most one database connection per request and disables prepared
 statements for transaction-pooler compatibility. `SUPABASE_URL` and
 `SUPABASE_KEY` let the API validate user access tokens. Run a Worker health
 check before connecting Pages.
+
+The Worker cron runs every five minutes and makes at most one Google request per
+run. All Google requests share a 1,000-attempt America/Los_Angeles daily limit.
 
 ## 3. Set up the Pages project
 
