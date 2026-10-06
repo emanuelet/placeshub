@@ -183,6 +183,11 @@ savedRouter.get('/search', async (c) => {
             >`(SELECT cp.notes FROM collection_places cp WHERE cp.collection_id = ${params.collectionId} AND cp.place_id = ${places.id})`
           : savedPlaces.notes,
         tags: savedPlaces.tags,
+        collections: sql<{ id: string; title: string; notes: string | null }[]>`COALESCE((
+          SELECT jsonb_agg(jsonb_build_object('id', c.id, 'title', c.title, 'notes', cp.notes) ORDER BY c.title, c.id)
+          FROM collection_places cp JOIN collections c ON c.id = cp.collection_id
+          WHERE cp.place_id = ${places.id} AND c.user_id = ${userId}
+        ), '[]'::jsonb)`,
       })
       .from(places)
       .leftJoin(

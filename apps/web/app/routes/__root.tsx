@@ -67,7 +67,7 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
         <button
           type="button"
           onClick={handleSignOut}
-          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto"
         >
           Sign out
         </button>
@@ -75,7 +75,7 @@ function AuthNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           to="/auth/login"
           onClick={onNavigate}
-          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto md:justify-center"
+          className="ui-button ui-button-quiet min-h-11 w-full justify-start px-3 md:min-h-9 md:w-auto"
         >
           Sign in
         </Link>

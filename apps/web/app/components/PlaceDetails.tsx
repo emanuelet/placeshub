@@ -1,54 +1,81 @@
-import { Clock3, ExternalLink, Globe2, MapPin, Pencil, Phone, Star, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { type Place, useUpdateSavedPlace } from '@/hooks/usePlaces'
+import { Link } from "@tanstack/react-router";
+import {
+  Clock3,
+  ExternalLink,
+  Globe2,
+  MapPin,
+  Pencil,
+  Phone,
+  Star,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { type Place, useUpdateSavedPlace } from "@/hooks/usePlaces";
+import { formatDate } from "@/lib/date";
 
-type DetailedPlace = Pick<Place, 'id' | 'name'> & Partial<Place>
+type DetailedPlace = Pick<Place, "id" | "name"> & Partial<Place>;
 
 function externalUrl(value: string | null | undefined) {
-  if (!value) return null
+  if (!value) return null;
   try {
-    const url = new URL(value)
-    return ['https:', 'http:'].includes(url.protocol) ? url.href : null
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : null;
   } catch {
-    return null
+    return null;
   }
 }
 
 function googleMapsLink(place: DetailedPlace) {
-  const known = externalUrl(place.googleMapsUri)
-  if (known) return known
+  const known = externalUrl(place.googleMapsUri);
+  if (known) return known;
   const query =
     place.lat != null && place.lng != null
       ? `${place.lat},${place.lng}`
-      : [place.name, place.address].filter(Boolean).join(', ')
-  const url = new URL('https://www.google.com/maps/search/')
-  url.searchParams.set('api', '1')
-  url.searchParams.set('query', query)
+      : [place.name, place.address].filter(Boolean).join(", ");
+  const url = new URL("https://www.google.com/maps/search/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("query", query);
   if (place.googlePlaceId && !/^(maps|mymaps):/.test(place.googlePlaceId)) {
-    url.searchParams.set('query_place_id', place.googlePlaceId)
+    url.searchParams.set("query_place_id", place.googlePlaceId);
   }
-  return url.href
+  return url.href;
 }
 
 export function PlaceDetails({
   place,
   personalNotes,
   importedNotes,
-  importedNotesLabel = 'Google list note',
+  importedNotesLabel = "Google list note",
+  collections,
   savedPlaceId,
   onClose,
 }: {
-  place: DetailedPlace
-  personalNotes?: string | null
-  importedNotes?: string | null
-  importedNotesLabel?: string
-  savedPlaceId?: string | null
-  onClose: () => void
+  place: DetailedPlace;
+  personalNotes?: string | null;
+  importedNotes?: string | null;
+  importedNotesLabel?: string;
+  collections?: {
+    id: string;
+    title: string;
+    notes: string | null;
+    syncedFromGoogle?: boolean;
+  }[];
+  savedPlaceId?: string | null;
+  onClose: () => void;
 }) {
-  const meta = place.metadata
+  const meta = place.metadata;
+  const categories = [...(meta?.category ?? []), ...(place.types ?? [])]
+    .map((value) => value.trim().replaceAll("_", " "))
+    .filter(
+      (value, index, values) =>
+        value &&
+        values.findIndex(
+          (item) => item.toLowerCase() === value.toLowerCase(),
+        ) === index,
+    );
   return (
     <aside
-      className="ui-panel min-w-0 space-y-4 overflow-y-auto p-4 sm:p-5"
+      className="ui-panel flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-5 lg:h-full [&>*]:shrink-0"
       aria-label="Place details"
     >
       <div className="flex items-start justify-between gap-2">
@@ -82,24 +109,36 @@ export function PlaceDetails({
       <div className="space-y-2 text-sm break-words">
         {place.address && (
           <p className="flex items-start gap-2">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <MapPin
+              className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
             {place.address}
           </p>
         )}
         {place.rating != null && (
           <p className="flex items-center gap-2">
-            <Star className="h-4 w-4 shrink-0 fill-accent text-accent" aria-hidden="true" />
+            <Star
+              className="h-4 w-4 shrink-0 fill-accent text-accent"
+              aria-hidden="true"
+            />
             {place.rating}
-            {meta?.reviewCount != null ? ` (${meta.reviewCount} reviews)` : ''}
+            {meta?.reviewCount != null ? ` (${meta.reviewCount} reviews)` : ""}
           </p>
         )}
-        {meta?.category?.length ? <p>{meta.category.join(' · ')}</p> : null}
-        {place.types?.length ? <p>{place.types.join(' · ')}</p> : null}
-        {meta?.businessStatus && <p>Status: {meta.businessStatus.replaceAll('_', ' ')}</p>}
-        {meta?.priceLevel && <p>Price: {meta.priceLevel.replaceAll('_', ' ')}</p>}
+        {categories.length ? <p>{categories.join(" · ")}</p> : null}
+        {meta?.businessStatus && (
+          <p>Status: {meta.businessStatus.replaceAll("_", " ")}</p>
+        )}
+        {meta?.priceLevel && (
+          <p>Price: {meta.priceLevel.replaceAll("_", " ")}</p>
+        )}
         {place.phone && (
           <p className="flex items-center gap-2">
-            <Phone className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <Phone
+              className="h-4 w-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
             <a href={`tel:${place.phone}`} className="text-primary underline">
               {place.phone}
             </a>
@@ -107,7 +146,10 @@ export function PlaceDetails({
         )}
         {place.website && externalUrl(place.website) && (
           <p className="flex items-center gap-2">
-            <Globe2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <Globe2
+              className="h-4 w-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
             <a
               href={externalUrl(place.website) ?? undefined}
               target="_blank"
@@ -121,7 +163,10 @@ export function PlaceDetails({
         {meta?.hours?.length ? (
           <div>
             <h3 className="flex items-center gap-2 font-semibold">
-              <Clock3 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Clock3
+                className="h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               Opening hours
             </h3>
             {meta.hours.map(({ day, hours }) => (
@@ -136,15 +181,44 @@ export function PlaceDetails({
         {meta?.state && <p>State: {meta.state}</p>}
         {meta?.postalCode && <p>Postal code: {meta.postalCode}</p>}
         {meta?.country && <p>Country: {meta.country}</p>}
-        {meta?.dateAdded && <p>Added: {new Date(meta.dateAdded).toLocaleDateString()}</p>}
-        {meta?.dateUpdated && <p>Updated: {new Date(meta.dateUpdated).toLocaleDateString()}</p>}
       </div>
+      {collections && (
+        <section
+          className="space-y-2 border-t pt-3 text-sm"
+          aria-label="Collections"
+        >
+          <h3 className="font-semibold">Collections</h3>
+          {collections.length ? (
+            collections.map((collection) => (
+              <div key={collection.id} className="break-words">
+                <Link
+                  to="/collections/$collectionId"
+                  params={{ collectionId: collection.id }}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {collection.title}
+                </Link>
+                {collection.notes && (
+                  <CollectionNote
+                    label={
+                      collection.syncedFromGoogle
+                        ? "Google list note"
+                        : "Collection note"
+                    }
+                    notes={collection.notes}
+                  />
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground">Not in a collection.</p>
+          )}
+        </section>
+      )}
       {(savedPlaceId || personalNotes || importedNotes) && (
         <div className="space-y-2 border-t pt-3 text-sm">
           {importedNotes && (
-            <p>
-              <strong>{importedNotesLabel}:</strong> {importedNotes}
-            </p>
+            <CollectionNote label={importedNotesLabel} notes={importedNotes} />
           )}
           {savedPlaceId ? (
             <EditablePersonalNotes
@@ -153,29 +227,64 @@ export function PlaceDetails({
               notes={personalNotes}
             />
           ) : personalNotes ? (
-            <p className="whitespace-pre-wrap break-words text-muted-foreground">{personalNotes}</p>
+            <p className="whitespace-pre-wrap break-words text-muted-foreground">
+              {personalNotes}
+            </p>
           ) : null}
         </div>
       )}
+      <div className="mt-auto space-y-2 pt-4 text-sm">
+        {meta?.dateAdded && (
+          <p className="text-muted-foreground">
+            Added: {formatDate(meta.dateAdded)}
+          </p>
+        )}
+        {meta?.dateUpdated && (
+          <p className="text-muted-foreground">
+            Updated: {formatDate(meta.dateUpdated)}
+          </p>
+        )}
+        {(place.lat != null || place.lng != null) && (
+          <details key={place.id} className="border-t pt-3 text-sm">
+            <summary className="cursor-pointer font-semibold">
+              Coordinates
+            </summary>
+            <dl className="mt-2 grid grid-cols-2 gap-2">
+              <dt>Latitude</dt>
+              <dd>{place.lat ?? "Unavailable"}</dd>
+              <dt>Longitude</dt>
+              <dd>{place.lng ?? "Unavailable"}</dd>
+            </dl>
+          </details>
+        )}
+      </div>
     </aside>
-  )
+  );
+}
+
+function CollectionNote({ label, notes }: { label: string; notes: string }) {
+  return (
+    <p className="whitespace-pre-wrap break-words">
+      <strong>{label}:</strong> {notes}
+    </p>
+  );
 }
 
 function EditablePersonalNotes({
   savedPlaceId,
   notes,
 }: {
-  savedPlaceId: string
-  notes?: string | null
+  savedPlaceId: string;
+  notes?: string | null;
 }) {
-  const updateNotes = useUpdateSavedPlace()
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(notes ?? '')
-  const [error, setError] = useState('')
+  const updateNotes = useUpdateSavedPlace();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(notes ?? "");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setDraft(notes ?? '')
-  }, [notes])
+    setDraft(notes ?? "");
+  }, [notes]);
 
   return (
     <div className="space-y-2">
@@ -187,7 +296,8 @@ function EditablePersonalNotes({
             className="ui-button ui-button-quiet"
             onClick={() => setEditing(true)}
           >
-            <Pencil className="mr-1 inline h-4 w-4" aria-hidden="true" /> Edit notes
+            <Pencil className="mr-1 inline h-4 w-4" aria-hidden="true" /> Edit
+            notes
           </button>
         )}
       </div>
@@ -195,13 +305,20 @@ function EditablePersonalNotes({
         <form
           className="space-y-2"
           onSubmit={async (event) => {
-            event.preventDefault()
-            setError('')
+            event.preventDefault();
+            setError("");
             try {
-              await updateNotes.mutateAsync({ id: savedPlaceId, notes: draft.trim() || null })
-              setEditing(false)
+              await updateNotes.mutateAsync({
+                id: savedPlaceId,
+                notes: draft.trim() || null,
+              });
+              setEditing(false);
             } catch (reason) {
-              setError(reason instanceof Error ? reason.message : "Couldn't save notes")
+              setError(
+                reason instanceof Error
+                  ? reason.message
+                  : "Couldn't save notes",
+              );
             }
           }}
         >
@@ -232,8 +349,8 @@ function EditablePersonalNotes({
               type="button"
               className="ui-button ui-button-secondary"
               onClick={() => {
-                setDraft(notes ?? '')
-                setEditing(false)
+                setDraft(notes ?? "");
+                setEditing(false);
               }}
             >
               Cancel
@@ -242,9 +359,9 @@ function EditablePersonalNotes({
         </form>
       ) : (
         <p className="whitespace-pre-wrap break-words text-muted-foreground">
-          {notes || 'No personal notes yet.'}
+          {notes || "No personal notes yet."}
         </p>
       )}
     </div>
-  )
+  );
 }

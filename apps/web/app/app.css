@@ -126,6 +126,22 @@
     outline: 3px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  button {
+    text-align: left;
+  }
+}
+
+.ui-place-item {
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms, box-shadow 150ms;
+}
+
+.ui-place-item:hover,
+.ui-place-item:focus-visible {
+  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 var(--color-primary);
 }
 
 @layer components {
@@ -138,7 +154,7 @@
   }
 
   .ui-button {
-    @apply inline-flex min-h-10 items-center justify-center rounded-control px-4 py-2 text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-start rounded-control px-4 py-2 text-left text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50;
   }
 
   .ui-button-primary {

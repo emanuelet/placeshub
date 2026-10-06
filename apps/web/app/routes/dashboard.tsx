@@ -134,7 +134,7 @@ function Dashboard() {
                 const place = toMapPlace(sp, sp.notes)
                 if (place) flyTo(place.lat, place.lng)
               }}
-              className={`w-full rounded-control border bg-surface p-3 text-left transition-colors hover:bg-muted ${selectedId === sp.id ? 'border-primary bg-muted' : ''}`}
+              className={`ui-place-item w-full rounded-control border bg-surface p-3 text-left ${selectedId === sp.id ? 'border-primary bg-muted' : ''}`}
             >
               <span className="block break-words text-sm font-medium">{sp.name}</span>
               {sp.address && (
@@ -150,6 +150,19 @@ function Dashboard() {
                   {sp.notes}
                 </span>
               )}
+              {sp.collections?.length ? (
+                <span className="mt-2 block space-y-1 text-xs text-muted-foreground">
+                  {sp.collections.map((collection) => (
+                    <span key={collection.id} className="block break-words">
+                      <span className="font-semibold">Collection: {collection.title}</span>
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                <span className="mt-2 block text-xs text-muted-foreground">
+                  Not in a collection.
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -158,6 +171,11 @@ function Dashboard() {
         <PlaceDetails
           place={selected}
           personalNotes={selected.personalNotes}
+          collections={(selected.collections ?? []).map((collection) => ({
+            ...collection,
+            syncedFromGoogle: collectionsData?.collections.find((item) => item.id === collection.id)
+              ?.syncedFromGoogle,
+          }))}
           savedPlaceId={selected.savedPlaceId}
           onClose={() => {
             setSelectedId(null)
