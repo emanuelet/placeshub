@@ -161,20 +161,24 @@ export function PlaceDetails({
           </p>
         )}
         {meta?.hours?.length ? (
-          <div>
-            <h3 className="flex items-center gap-2 font-semibold">
-              <Clock3
-                className="h-4 w-4 text-muted-foreground"
-                aria-hidden="true"
-              />
-              Opening hours
-            </h3>
-            {meta.hours.map(({ day, hours }) => (
-              <p key={day}>
-                {day}: {hours}
-              </p>
-            ))}
-          </div>
+          <details key={place.id} open>
+            <summary className="cursor-pointer font-semibold">
+              <span className="inline-flex items-center gap-2 align-middle">
+                <Clock3
+                  className="h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                Opening hours
+              </span>
+            </summary>
+            <div className="mt-2">
+              {meta.hours.map(({ day, hours }) => (
+                <p key={day}>
+                  {day}: {hours}
+                </p>
+              ))}
+            </div>
+          </details>
         ) : null}
         {meta?.plusCode && <p>Plus code: {meta.plusCode}</p>}
         {meta?.city && <p>City: {meta.city}</p>}
@@ -297,7 +301,6 @@ function EditablePersonalNotes({
             onClick={() => setEditing(true)}
           >
             <Pencil className="mr-1 inline h-4 w-4" aria-hidden="true" /> Edit
-            notes
           </button>
         )}
       </div>

@@ -449,7 +449,7 @@ function CollectionDetail() {
           {collectionPlaces.map((cp) => (
             <div
               key={cp.id}
-              className={`flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.id ? 'border-primary bg-muted' : ''}`}
+              className={`ui-list-item flex w-full min-w-0 items-start gap-2 rounded-control border bg-surface p-3 ${selectedId === cp.id ? 'border-primary bg-muted' : ''}`}
             >
               {manual && (
                 <input
@@ -469,7 +469,7 @@ function CollectionDetail() {
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
-                  className="ui-place-item w-full rounded-control p-1 text-left"
+                  className="w-full rounded-control p-1 text-left"
                   aria-pressed={selectedId === cp.id}
                   onClick={() => {
                     setSelectedId(cp.id)

@@ -175,8 +175,14 @@
   transition: background-color 150ms, border-color 150ms, box-shadow 150ms;
 }
 
+.ui-list-item {
+  transition: background-color 150ms, border-color 150ms, box-shadow 150ms;
+}
+
 .ui-place-item:hover,
-.ui-place-item:focus-visible {
+.ui-place-item:focus-visible,
+.ui-list-item:hover,
+.ui-list-item:focus-within {
   background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
   border-color: var(--color-primary);
   box-shadow: inset 3px 0 var(--color-primary);

@@ -156,7 +156,7 @@ export function AddPlaceForm({
                 type="button"
                 role="option"
                 aria-selected={index === activeIndex}
-                className={`flex w-full items-start gap-2 p-3 text-left hover:bg-muted ${index === activeIndex ? 'bg-muted' : ''}`}
+                className={`ui-place-item flex w-full items-start gap-2 p-3 text-left ${index === activeIndex ? 'bg-muted' : ''}`}
                 onClick={() => choosePlace(place)}
               >
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />

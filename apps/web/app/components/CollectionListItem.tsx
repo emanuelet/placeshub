@@ -14,12 +14,12 @@ export function CollectionListItem({ collection }: { collection: Collection }) {
   const [error, setError] = useState('')
   const [shareUrl, setShareUrl] = useState('')
   return (
-    <article className="ui-panel min-w-0 p-4">
+    <article className="ui-panel ui-list-item min-w-0 p-4">
       <div className="flex items-start gap-2">
         <Link
           to="/collections/$collectionId"
           params={{ collectionId: collection.id }}
-          className="ui-place-item -m-2 mr-0 block min-w-0 flex-1 rounded-control p-2"
+            className="-m-2 mr-0 block min-w-0 flex-1 rounded-control p-2"
         >
           <strong className="break-words">{collection.title}</strong>
           {collection.syncedFromGoogle && <span className="ui-badge ml-2">Google Sync</span>}
