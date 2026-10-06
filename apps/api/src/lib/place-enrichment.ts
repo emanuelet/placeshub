@@ -47,34 +47,45 @@ export async function processOnePlaceEnrichment(env: Env) {
 	if (!env.GOOGLE_PLACES_API_KEY) return;
 	const { db, client } = getDb(env.DATABASE_URL);
 	try {
-		const [job] = await db
-			.select({
-				id: placeEnrichmentJobs.id,
-				status: placeEnrichmentJobs.status,
-				attempts: placeEnrichmentJobs.attempts,
-				resolvedGooglePlaceId: placeEnrichmentJobs.resolvedGooglePlaceId,
-				place: {
-					id: places.id,
-					name: places.name,
-					lat: places.lat,
-					lng: places.lng,
-				},
-			})
-			.from(placeEnrichmentJobs)
-			.innerJoin(places, eq(placeEnrichmentJobs.placeId, places.id))
-			.where(
-				and(
-					inArray(placeEnrichmentJobs.status, [
-						"pending",
-						"resolving",
-						"details",
-					]),
-					lte(placeEnrichmentJobs.nextAttemptAt, new Date()),
-				),
-			)
-			.orderBy(asc(placeEnrichmentJobs.nextAttemptAt))
-			.limit(1)
-			.for("update");
+		const job = await db.transaction(async (tx) => {
+			const [job] = await tx
+				.select({
+					id: placeEnrichmentJobs.id,
+					status: placeEnrichmentJobs.status,
+					attempts: placeEnrichmentJobs.attempts,
+					resolvedGooglePlaceId: placeEnrichmentJobs.resolvedGooglePlaceId,
+					place: {
+						id: places.id,
+						name: places.name,
+						lat: places.lat,
+						lng: places.lng,
+					},
+				})
+				.from(placeEnrichmentJobs)
+				.innerJoin(places, eq(placeEnrichmentJobs.placeId, places.id))
+				.where(
+					and(
+						inArray(placeEnrichmentJobs.status, [
+							"pending",
+							"resolving",
+							"details",
+						]),
+						lte(placeEnrichmentJobs.nextAttemptAt, new Date()),
+					),
+				)
+				.orderBy(asc(placeEnrichmentJobs.nextAttemptAt))
+				.limit(1)
+				.for("update");
+			if (!job) return null;
+			await tx
+				.update(placeEnrichmentJobs)
+				.set({
+					nextAttemptAt: new Date(Date.now() + 15 * 60 * 1000),
+					updatedAt: new Date(),
+				})
+				.where(eq(placeEnrichmentJobs.id, job.id));
+			return job;
+		});
 		if (!job) return;
 		try {
 			if (job.status === "pending" || job.status === "resolving") {
