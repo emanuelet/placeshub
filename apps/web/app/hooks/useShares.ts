@@ -22,7 +22,7 @@ export function useShare(slug: string) {
 export function useCreateShare() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (body: { collectionId: string; includeNotes?: boolean }) =>
+    mutationFn: (body: { collectionId: string; includeNotes?: boolean; expiresAt?: string | null }) =>
       api.post<{ share: Share }>('/shares', body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shares'] })

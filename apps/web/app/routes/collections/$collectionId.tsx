@@ -5,6 +5,7 @@ import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { MovePlacesDialog } from '@/components/MovePlacesDialog'
 import { PlaceDetails } from '@/components/PlaceDetails'
 import { SavedSearchControls } from '@/components/SavedSearchControls'
+import { SnapshotDialog } from '@/components/SnapshotDialog'
 import {
   useBulkRemovePlacesFromCollection,
   useCollection,
@@ -13,7 +14,6 @@ import {
   useUpdateCollection,
 } from '@/hooks/useCollections'
 import { useSavedPlaceSearch } from '@/hooks/useSavedPlaceSearch'
-import { useCreateShare } from '@/hooks/useShares'
 import { useAuth } from '@/lib/auth'
 import { type MapPlace, toMapPlace, useMapManager } from '@/lib/mapContext'
 
@@ -29,12 +29,11 @@ function CollectionDetail() {
   const bulkRemove = useBulkRemovePlacesFromCollection()
   const updateCollection = useUpdateCollection()
   const deleteCollection = useDeleteCollection()
-  const createShare = useCreateShare()
   const { setPlaces, setOnPlaceClick, setSelectedPlaceId, flyTo } = useMapManager()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [moveIds, setMoveIds] = useState<string[] | null>(null)
-  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [showSnapshotDialog, setShowSnapshotDialog] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -102,11 +101,6 @@ function CollectionDetail() {
     document.addEventListener('pointerdown', dismiss)
     return () => document.removeEventListener('pointerdown', dismiss)
   }, [])
-
-  const handleShare = async () => {
-    const { share } = await createShare.mutateAsync({ collectionId })
-    setShareUrl(`${window.location.origin}/share/${share.slug}`)
-  }
 
   const handleActionsKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'Escape') {
@@ -292,14 +286,11 @@ function CollectionDetail() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => {
-                handleShare().catch(() => {})
-              }}
-              disabled={createShare.isPending}
+              onClick={() => setShowSnapshotDialog(true)}
               className="ui-button ui-button-secondary gap-1"
             >
               <Share2 className="h-4 w-4" aria-hidden="true" />
-              {createShare.isPending ? 'Sharing...' : 'Share snapshot'}
+              Share snapshot
             </button>
           </div>
         </div>
@@ -356,19 +347,8 @@ function CollectionDetail() {
             }}
           />
         )}
-        {shareUrl && (
-          <div className="ui-alert-success">
-            <p className="font-medium">Share link created:</p>
-            <a href={shareUrl} className="break-all text-primary underline">
-              {shareUrl}
-            </a>
-            <p className="text-xs">This snapshot does not update when the collection changes.</p>
-          </div>
-        )}
-        {createShare.isError && (
-          <p role="alert" className="ui-alert-error">
-            {createShare.error.message}
-          </p>
+        {showSnapshotDialog && (
+          <SnapshotDialog collectionId={collectionId} onClose={() => setShowSnapshotDialog(false)} />
         )}
         {(actionError || removePlace.error || bulkRemove.error) && (
           <p role="alert" className="ui-alert-error">

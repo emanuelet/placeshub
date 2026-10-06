@@ -60,6 +60,22 @@ it('enforces ownership in the delete itself and returns 404 for an unowned snaps
   expect(where.mock.calls[0][0].sql).toContain('EXISTS')
   expect(end).toHaveBeenCalledOnce()
 })
+it('rejects an invalid snapshot expiration before opening a database', async () => {
+  const response = await shares.request(
+    '/',
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        collectionId: '10000000-0000-4000-8000-000000000001',
+        expiresAt: 'not-a-date',
+      }),
+    },
+    { DATABASE_URL: 'unused' },
+  )
+  expect(response.status).toBe(400)
+  expect(getDb).not.toHaveBeenCalled()
+})
 it('deletes an owned snapshot and rejects malformed identifiers before opening a database', async () => {
   expect(
     (await shares.request(`/${id}`, { method: 'DELETE' }, { DATABASE_URL: 'unused' })).status,

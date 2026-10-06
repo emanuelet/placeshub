@@ -7,6 +7,7 @@ import {
   changeMembership,
   deleteSavedPlaces,
   savePlaces,
+  updatePlace,
   updateSavedPlaces,
 } from '../../../api/src/lib/mcp-places'
 
@@ -126,6 +127,11 @@ describe('MCP batch transactions', () => {
                 }),
               }),
               update: () => ({ set: () => ({ where: () => ({ returning: async () => [] }) }) }),
+              select: () => ({
+                from: () => ({
+                  where: () => ({ for: () => ({ limit: async () => [] }) }),
+                }),
+              }),
             })
           } catch (error) {
             persisted.splice(0, persisted.length, ...before)
@@ -141,5 +147,87 @@ describe('MCP batch transactions', () => {
       ]),
     ).rejects.toThrow('place could not be saved')
     expect(persisted).toEqual([])
+  })
+
+  it('links an existing place without overwriting its shared fields', async () => {
+    const update = vi.fn()
+    getDb.mockReturnValueOnce({
+      client: { end },
+      db: {
+        transaction: async (work: (tx: object) => Promise<unknown>) =>
+          work({
+            insert: () => ({
+              values: (value: { googlePlaceId?: string }) =>
+                value.googlePlaceId
+                  ? { onConflictDoNothing: () => ({ returning: async () => [] }) }
+                  : { onConflictDoUpdate: () => ({ returning: async () => [{ id: 'saved-place' }] }) },
+            }),
+            select: () => ({
+              from: () => ({
+                where: () => ({ for: () => ({ limit: async () => [{ id: first, name: 'Existing' }] }) }),
+              }),
+            }),
+            update,
+          }),
+      },
+    })
+
+    const [result] = await savePlaces('unused', 'user-1', [
+      { googlePlaceId: 'existing', name: 'Untrusted replacement' },
+    ])
+
+    expect(result?.place).toEqual({ id: first, name: 'Existing' })
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('only fills missing shared fields when updating a place', async () => {
+    const set = vi.fn()
+    getDb.mockReturnValueOnce({
+      client: { end },
+      db: {
+        transaction: async (work: (tx: object) => Promise<unknown>) =>
+          work({
+            select: () => ({
+              from: () => ({
+                innerJoin: () => ({
+                  where: () => ({
+                    for: () => ({
+                      limit: async () => [
+                        {
+                          id: first,
+                          lat: null,
+                          lng: 2,
+                          address: 'Existing address',
+                          googleMapsUri: null,
+                          types: null,
+                          phone: null,
+                          website: null,
+                          rating: null,
+                          metadata: null,
+                        },
+                      ],
+                    }),
+                  }),
+                }),
+              }),
+            }),
+            update: () => ({
+              set: (value: object) => {
+                set(value)
+                return { where: () => ({ returning: async () => [{ id: first, lat: 1 }] }) }
+              },
+            }),
+          }),
+      },
+    })
+
+    const result = await updatePlace('unused', 'user-1', {
+      placeId: first,
+      lat: 1,
+      address: 'Untrusted replacement',
+    })
+
+    expect(set).toHaveBeenCalledWith({ lat: 1, cachedAt: expect.any(Date) })
+    expect(result.updatedFields).toEqual(['lat'])
   })
 })

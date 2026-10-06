@@ -6,6 +6,11 @@ import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
 
 const sharesRouter = new Hono<AuthEnv>()
+const createShareSchema = z.object({
+  collectionId: z.uuid(),
+  includeNotes: z.boolean().optional(),
+  expiresAt: z.iso.datetime().nullable().optional(),
+})
 
 sharesRouter.get('/', auth, async (c) => {
   const { db, client } = getDb(c.env.DATABASE_URL)
@@ -55,11 +60,12 @@ sharesRouter.delete('/:id', auth, async (c) => {
 
 sharesRouter.post('/', auth, async (c) => {
   const userId = c.get('userId')
-  const body = await c.req.json()
-  const { collectionId, includeNotes = false } = body
-
-  if (!collectionId) {
-    return c.json({ error: 'collectionId is required' }, 400)
+  const parsed = createShareSchema.safeParse(await c.req.json())
+  if (!parsed.success) return c.json({ error: 'invalid snapshot request' }, 400)
+  const { collectionId, includeNotes = false, expiresAt = null } = parsed.data
+  const expiration = expiresAt ? new Date(expiresAt) : null
+  if (expiration && expiration <= new Date()) {
+    return c.json({ error: 'expiration must be in the future' }, 400)
   }
 
   const { db, client } = getDb(c.env.DATABASE_URL)
@@ -114,6 +120,7 @@ sharesRouter.post('/', auth, async (c) => {
         collectionId,
         slug,
         includeNotes,
+        expiresAt: expiration,
         placesSnapshot,
       })
       .returning()

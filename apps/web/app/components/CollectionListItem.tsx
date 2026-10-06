@@ -1,18 +1,17 @@
 import { Link } from '@tanstack/react-router'
 import { Ellipsis, Pencil, Share2 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { SnapshotDialog } from '@/components/SnapshotDialog'
 import { type Collection, useUpdateCollection } from '@/hooks/useCollections'
-import { useCreateShare } from '@/hooks/useShares'
 import { formatDate } from '@/lib/date'
 
 export function CollectionListItem({ collection }: { collection: Collection }) {
   const update = useUpdateCollection()
-  const share = useCreateShare()
   const menu = useRef<HTMLDetailsElement>(null)
   const [editing, setEditing] = useState(false)
+  const [showSnapshotDialog, setShowSnapshotDialog] = useState(false)
   const [title, setTitle] = useState(collection.title)
   const [error, setError] = useState('')
-  const [shareUrl, setShareUrl] = useState('')
   return (
     <article className="ui-panel ui-list-item min-w-0 p-4">
       <div className="flex items-start gap-2">
@@ -65,16 +64,9 @@ export function CollectionListItem({ collection }: { collection: Collection }) {
             <button
               type="button"
               className="ui-button ui-button-quiet w-full justify-start gap-2"
-              disabled={share.isPending}
-              onClick={async () => {
+              onClick={() => {
                 if (menu.current) menu.current.open = false
-                setError('')
-                try {
-                  const result = await share.mutateAsync({ collectionId: collection.id })
-                  setShareUrl(`${window.location.origin}/share/${result.share.slug}`)
-                } catch (reason) {
-                  setError(reason instanceof Error ? reason.message : "Couldn't share collection")
-                }
+                setShowSnapshotDialog(true)
               }}
             >
               <Share2 className="h-4 w-4" aria-hidden="true" />
@@ -138,13 +130,8 @@ export function CollectionListItem({ collection }: { collection: Collection }) {
           {error}
         </p>
       )}
-      {shareUrl && (
-        <div role="status" className="ui-alert-success mt-3">
-          <p>Snapshot created:</p>
-          <a href={shareUrl} className="break-all underline">
-            {shareUrl}
-          </a>
-        </div>
+      {showSnapshotDialog && (
+        <SnapshotDialog collectionId={collection.id} onClose={() => setShowSnapshotDialog(false)} />
       )}
     </article>
   )

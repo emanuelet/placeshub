@@ -16,6 +16,8 @@ import {
   PlaceOperationError,
   saveInput,
   savePlaces,
+  placeUpdateInput,
+  updatePlace,
   updateInput,
   updateSavedPlaces,
   uuid,
@@ -164,10 +166,10 @@ function buildServer(userId: string, env: Bindings) {
   )
 
   server.registerTool(
-    'save_place',
+    'add_place',
     {
       description:
-        'Save one Google Place; optional collectionId adds it to an owned manual collection.',
+        'Save one Google Place; existing shared place fields are never overwritten. Optional collectionId adds it to an owned manual collection.',
       inputSchema: saveInput,
     },
     (item) => execute(async () => (await savePlaces(url, userId, [item]))[0]),
@@ -182,6 +184,15 @@ function buildServer(userId: string, env: Bindings) {
     ({ places }) => execute(() => savePlaces(url, userId, places)),
   )
 
+  server.registerTool(
+    'update_place',
+    {
+      description:
+        'Fill missing shared place fields by global placeId. Existing values, including the name, are never overwritten.',
+      inputSchema: placeUpdateInput,
+    },
+    (item) => execute(() => updatePlace(url, userId, item)),
+  )
   server.registerTool(
     'update_saved_place',
     {

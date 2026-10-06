@@ -40,6 +40,32 @@ export const updateInput = z
     (item) => item.notes !== undefined || item.tags !== undefined,
     'notes or tags is required',
   )
+export const placeUpdateInput = z
+  .object({
+    placeId: uuid,
+    lat: z.number().finite().min(-90).max(90).optional(),
+    lng: z.number().finite().min(-180).max(180).optional(),
+    address: z.string().max(1000).optional(),
+    googleMapsUri: z.string().url().max(2000).optional(),
+    types: z.array(z.string().max(120)).max(20).optional(),
+    phone: z.string().max(100).optional(),
+    website: z.string().url().max(2000).optional(),
+    rating: z.number().finite().min(0).max(5).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .refine(
+    (item) =>
+      item.lat !== undefined ||
+      item.lng !== undefined ||
+      item.address !== undefined ||
+      item.googleMapsUri !== undefined ||
+      item.types !== undefined ||
+      item.phone !== undefined ||
+      item.website !== undefined ||
+      item.rating !== undefined ||
+      item.metadata !== undefined,
+    'at least one shared field is required',
+  )
 
 export class PlaceOperationError extends Error {}
 function requireUnique(ids: string[]) {
@@ -102,31 +128,16 @@ export async function savePlaces(url: string, userId: string, items: z.infer<typ
           })
           .onConflictDoNothing({ target: places.googlePlaceId })
           .returning()
-        const place =
-          inserted ??
-          (
-            await tx
-              .update(places)
-              .set({
-                name: item.name,
-                ...(item.lat != null ? { lat: item.lat } : {}),
-                ...(item.lng != null ? { lng: item.lng } : {}),
-                ...(item.address ? { address: item.address } : {}),
-                ...(item.googleMapsUri ? { googleMapsUri: item.googleMapsUri } : {}),
-                ...(item.types?.length ? { types: item.types } : {}),
-                ...(item.phone ? { phone: item.phone } : {}),
-                ...(item.website ? { website: item.website } : {}),
-                ...(item.rating != null ? { rating: item.rating } : {}),
-                ...(item.metadata
-                  ? {
-                      metadata: sql`COALESCE(${places.metadata}, '{}'::jsonb) || ${JSON.stringify(item.metadata)}::jsonb`,
-                    }
-                  : {}),
-                cachedAt: new Date(),
-              })
-              .where(eq(places.googlePlaceId, item.googlePlaceId))
-              .returning()
-          )[0]
+          const place =
+            inserted ??
+            (
+              await tx
+                .select()
+                .from(places)
+                .where(eq(places.googlePlaceId, item.googlePlaceId))
+                .for('update')
+                .limit(1)
+            )[0]
         if (!place) throw new PlaceOperationError('place could not be saved')
         const [savedPlace] = await tx
           .insert(savedPlaces)
@@ -155,6 +166,62 @@ export async function savePlaces(url: string, userId: string, items: z.infer<typ
         results.push({ savedPlace, place })
       }
       return results
+    }),
+  )
+}
+
+export async function updatePlace(
+  url: string,
+  userId: string,
+  item: z.infer<typeof placeUpdateInput>,
+) {
+  return withMcpDb(url, (db) =>
+    db.transaction(async (tx) => {
+      const [place] = await tx
+        .select({
+          id: places.id,
+          lat: places.lat,
+          lng: places.lng,
+          address: places.address,
+          googleMapsUri: places.googleMapsUri,
+          types: places.types,
+          phone: places.phone,
+          website: places.website,
+          rating: places.rating,
+          metadata: places.metadata,
+        })
+        .from(places)
+        .innerJoin(
+          savedPlaces,
+          and(eq(savedPlaces.placeId, places.id), eq(savedPlaces.userId, userId)),
+        )
+        .where(eq(places.id, item.placeId))
+        .for('update')
+        .limit(1)
+      if (!place) throw new PlaceOperationError('place not found')
+
+      const fields = {
+        ...(place.lat == null && item.lat !== undefined ? { lat: item.lat } : {}),
+        ...(place.lng == null && item.lng !== undefined ? { lng: item.lng } : {}),
+        ...(place.address == null && item.address !== undefined ? { address: item.address } : {}),
+        ...(place.googleMapsUri == null && item.googleMapsUri !== undefined
+          ? { googleMapsUri: item.googleMapsUri }
+          : {}),
+        ...(place.types == null && item.types !== undefined ? { types: item.types } : {}),
+        ...(place.phone == null && item.phone !== undefined ? { phone: item.phone } : {}),
+        ...(place.website == null && item.website !== undefined ? { website: item.website } : {}),
+        ...(place.rating == null && item.rating !== undefined ? { rating: item.rating } : {}),
+        ...(place.metadata == null && item.metadata !== undefined ? { metadata: item.metadata } : {}),
+      }
+      if (Object.keys(fields).length === 0) return { place, updatedFields: [] }
+
+      const [updated] = await tx
+        .update(places)
+        .set({ ...fields, cachedAt: new Date() })
+        .where(eq(places.id, item.placeId))
+        .returning()
+      if (!updated) throw new PlaceOperationError('place not found')
+      return { place: updated, updatedFields: Object.keys(fields) }
     }),
   )
 }

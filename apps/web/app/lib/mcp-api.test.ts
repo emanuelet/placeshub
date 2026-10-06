@@ -86,6 +86,8 @@ describe('stateless MCP transport', () => {
     expect(tools).toContain('bulk_delete_saved_places')
     expect(tools).toContain('bulk_add_places_to_collection')
     expect(tools).toContain('bulk_remove_places_from_collection')
+    expect(tools).toContain('add_place')
+    expect(tools).toContain('update_place')
     expect((await message(second)).result.tools).toHaveLength(tools.length)
   })
 

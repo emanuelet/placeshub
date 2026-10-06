@@ -43,6 +43,11 @@ it('shares synced collections but does not offer rename', async () => {
   fireEvent.click(screen.getByLabelText('Actions for Trip'))
   expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Share snapshot' }))
-  expect(await screen.findByRole('status')).toHaveTextContent('/share/trip-snapshot')
-  expect(share).toHaveBeenCalledWith({ collectionId: 'test' })
+  expect((screen.getByLabelText('Expiration') as HTMLSelectElement).value).toBe('never')
+  fireEvent.click(screen.getByRole('button', { name: 'Create snapshot' }))
+  await waitFor(() => expect(share).toHaveBeenCalledWith({ collectionId: 'test', expiresAt: null }))
+  expect(await screen.findByRole('link', { name: /trip-snapshot/ })).toHaveAttribute(
+    'href',
+    'http://localhost:3000/share/trip-snapshot',
+  )
 })
