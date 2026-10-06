@@ -21,9 +21,7 @@ export const collectionPlaces = pgTable(
 			.references(() => places.id, { onDelete: "cascade" }),
 		sortOrder: integer("sort_order").notNull().default(0),
 		notes: text("notes"),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	},
 	(table) => ({
 		collectionPlaceUnique: uniqueIndex("collection_place_unique").on(

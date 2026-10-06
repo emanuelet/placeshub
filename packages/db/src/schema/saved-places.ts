@@ -22,9 +22,7 @@ export const savedPlaces = pgTable(
 		notes: text("notes"),
 		directlySaved: boolean("directly_saved").notNull().default(true),
 		tags: text("tags").array().default([]),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	},
 	(table) => ({
 		userPlaceUnique: uniqueIndex("user_place_unique").on(

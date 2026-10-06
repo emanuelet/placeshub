@@ -16,8 +16,6 @@ export const shares = pgTable("shares", {
 	slug: text("slug").notNull().unique(),
 	includeNotes: boolean("include_notes").notNull().default(false),
 	placesSnapshot: jsonb("places_snapshot").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 	expiresAt: timestamp("expires_at", { withTimezone: true }),
 });

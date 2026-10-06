@@ -9,12 +9,10 @@ not the Worker URL. `placeshub-web.pages.dev` remains a Pages alias.
 
 ## 1. Prepare hosted services
 
-1. Create a hosted Supabase project. Apply the seven bootstrap scripts in
-   `packages/db/supabase/` (`001` through `007`) in order to the **hosted**
-   database. No Drizzle migrations are currently checked in; `db:migrate` does
-   not apply the bootstrap SQL. The local `supabase/config.toml` configures
-   local development, not hosted auth. See
-   [Database migrations](database-migrations.md).
+1. Create a hosted Supabase project. With a direct/session database connection,
+   run `pnpm --filter @placeshub/db run db:migrate` before deploying the Worker.
+   The local `supabase/config.toml` configures local development, not hosted auth.
+   See [Database migrations](database-migrations.md).
 2. Enable Places API (New) in Google Cloud and obtain a server-side API key.
    Restrict the key to that API. Obtain a public Mapbox token.
 3. Set Supabase Auth's Site URL to `https://placeshub.org` and allow that origin

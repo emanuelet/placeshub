@@ -21,10 +21,6 @@ export const places = pgTable("places", {
 	website: text("website"),
 	rating: real("rating"),
 	metadata: jsonb("metadata"),
-	cachedAt: timestamp("cached_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+	cachedAt: timestamp("cached_at", { withTimezone: true }).defaultNow(),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });

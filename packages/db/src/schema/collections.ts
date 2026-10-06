@@ -9,10 +9,6 @@ export const collections = pgTable("collections", {
 	title: text("title").notNull(),
 	description: text("description"),
 	slug: text("slug").notNull().unique(),
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

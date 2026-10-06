@@ -6,7 +6,5 @@ export const users = pgTable("users", {
 	displayName: text("display_name"),
 	avatarUrl: text("avatar_url"),
 	timezone: text("timezone").notNull().default("UTC"),
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });

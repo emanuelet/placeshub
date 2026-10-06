@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "db:generate": "drizzle-kit generate --dialect postgresql --schema ./src/schema/index.ts --out ./drizzle",
-    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
     "db:migrate": "drizzle-kit migrate",
+    "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio",
     "check": "biome check src",
     "format": "biome format --write src",
