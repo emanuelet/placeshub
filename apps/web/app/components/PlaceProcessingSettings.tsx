@@ -3,12 +3,23 @@ import { useState } from "react";
 import {
 	usePlaceProcessing,
 	usePlaceProcessingAction,
+	useTimezone,
+	useUpdateTimezone,
 } from "@/hooks/usePlaceProcessing";
 
 export function PlaceProcessingSettings() {
 	const [status, setStatus] = useState<string>();
 	const { data, isLoading, error } = usePlaceProcessing(status);
 	const action = usePlaceProcessingAction();
+	const { data: timezoneData } = useTimezone();
+	const updateTimezone = useUpdateTimezone();
+	const [timezone, setTimezone] = useState("");
+	const selectedTimezone =
+		timezone ||
+		timezoneData?.timezone ||
+		Intl.DateTimeFormat().resolvedOptions().timeZone;
+	const displayTimezone =
+		timezoneData?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 	const jobs = data?.jobs ?? [];
 	const pending =
 		(data?.counts.pending ?? 0) +
@@ -22,8 +33,8 @@ export function PlaceProcessingSettings() {
 				</h2>
 				<p className="text-sm text-muted-foreground">
 					Imported pins are matched with Google Places gradually. Automatic
-					processing uses at most 1,000 Google requests each day and targets 900
-					to leave room for retries and searches.
+					processing runs every five minutes; all Google requests share a
+					1,000-request daily limit.
 				</p>
 				<dl className="grid gap-3 text-sm sm:grid-cols-3">
 					<div>
@@ -46,7 +57,41 @@ export function PlaceProcessingSettings() {
 				{data?.usage.nextRequestAt && (
 					<p className="flex items-center gap-2 text-sm text-muted-foreground">
 						<Clock3 className="h-4 w-4" /> Next automatic request:{" "}
-						{new Date(data.usage.nextRequestAt).toLocaleString()}
+						{new Date(data.usage.nextRequestAt).toLocaleString([], {
+							timeZone: displayTimezone,
+						})}
+					</p>
+				)}
+			</div>
+			<div className="ui-panel space-y-3 p-5">
+				<h2 className="ui-section-title">Timezone</h2>
+				<p className="text-sm text-muted-foreground">
+					Used to display processing times. Google quota resets remain on the
+					America/Los_Angeles schedule.
+				</p>
+				<div className="flex flex-wrap gap-2">
+					<label className="sr-only" htmlFor="timezone">
+						Timezone
+					</label>
+					<input
+						id="timezone"
+						className="ui-input max-w-sm"
+						value={selectedTimezone}
+						onChange={(event) => setTimezone(event.target.value)}
+						placeholder="America/New_York"
+					/>
+					<button
+						type="button"
+						className="ui-button ui-button-secondary"
+						disabled={updateTimezone.isPending}
+						onClick={() => updateTimezone.mutate(selectedTimezone)}
+					>
+						Save timezone
+					</button>
+				</div>
+				{updateTimezone.isError && (
+					<p className="text-sm text-destructive">
+						Enter a valid IANA timezone, such as America/New_York.
 					</p>
 				)}
 			</div>

@@ -68,3 +68,19 @@ export function usePlaceProcessingAction() {
 			queryClient.invalidateQueries({ queryKey: ["placeProcessing"] }),
 	});
 }
+
+export function useTimezone() {
+	return useQuery({
+		queryKey: ["timezone"],
+		queryFn: () => api.get<{ timezone: string }>("/settings/timezone"),
+	});
+}
+
+export function useUpdateTimezone() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (timezone: string) =>
+			api.patch<{ timezone: string }>("/settings/timezone", { timezone }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["timezone"] }),
+	});
+}

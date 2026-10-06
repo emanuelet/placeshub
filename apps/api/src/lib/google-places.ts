@@ -2,7 +2,8 @@ import { sql } from "drizzle-orm";
 import { getDb } from "./db";
 
 const dailyLimit = 1000;
-const backgroundSpacingMs = 96_000;
+const backgroundSpacingMs = 5 * 60 * 1000;
+const service = "google_places";
 const candidateFields =
 	"places.id,places.displayName,places.location,places.formattedAddress";
 const fullFields =
@@ -62,14 +63,14 @@ async function reserveGoogleRequest(databaseUrl: string, background: boolean) {
 	try {
 		const now = new Date();
 		const rows = await db.execute(sql<{ attempts: number }>`
-      INSERT INTO google_request_usage (day, attempts, next_request_at, updated_at)
-      VALUES (${pacificDay()}::date, 1, ${new Date(now.getTime() + backgroundSpacingMs)}, ${now})
-      ON CONFLICT (day) DO UPDATE SET
-        attempts = google_request_usage.attempts + 1,
-        next_request_at = CASE WHEN ${background} THEN GREATEST(google_request_usage.next_request_at, ${now}) + interval '96 seconds' ELSE google_request_usage.next_request_at END,
-        updated_at = ${now}
-      WHERE google_request_usage.attempts < ${dailyLimit}
-        AND (NOT ${background} OR google_request_usage.next_request_at <= ${now})
+       INSERT INTO api_request_usage (service, day, attempts, next_request_at, updated_at)
+       VALUES (${service}, ${pacificDay()}::date, 1, ${new Date(now.getTime() + backgroundSpacingMs)}, ${now})
+       ON CONFLICT (service, day) DO UPDATE SET
+         attempts = api_request_usage.attempts + 1,
+         next_request_at = CASE WHEN ${background} THEN GREATEST(api_request_usage.next_request_at, ${now}) + interval '5 minutes' ELSE api_request_usage.next_request_at END,
+         updated_at = ${now}
+       WHERE api_request_usage.attempts < ${dailyLimit}
+         AND (NOT ${background} OR api_request_usage.next_request_at <= ${now})
       RETURNING attempts
     `);
 		if (!rows.length)

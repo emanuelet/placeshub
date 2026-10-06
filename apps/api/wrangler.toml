@@ -15,4 +15,4 @@ enabled = true
 # GOOGLE_PLACES_API_KEY = ""
 
 [triggers]
-crons = ["* * * * *"]
+crons = ["*/5 * * * *"]

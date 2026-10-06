@@ -6,6 +6,7 @@ import { mcpKeys } from "./routes/mcp-keys";
 import { placeProcessing } from "./routes/place-processing";
 import { places } from "./routes/places";
 import { saved } from "./routes/saved";
+import { settings } from "./routes/settings";
 import { shares } from "./routes/shares";
 import { sync } from "./routes/sync";
 import { processOnePlaceEnrichment } from "./lib/place-enrichment";
@@ -27,6 +28,7 @@ app.get("/api/health", (c) => c.json({ status: "ok" }));
 
 app.route("/api/places", places);
 app.route("/api/saved", saved);
+app.route("/api/settings", settings);
 app.route("/api/collections", collections);
 app.route("/api/shares", shares);
 app.route("/api/sync", sync);

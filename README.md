@@ -84,7 +84,7 @@ collections, supported fields and file limits.
 
 ## AI agent access (MCP)
 
-1. Apply the database migrations above, including `004-mcp-api-keys.sql` and `005-place-enrichment.sql`.
+1. Apply the database migrations above, including `004-mcp-api-keys.sql`, `005-place-enrichment.sql`, `006-api-request-usage.sql`, and `007-user-timezone.sql`.
 2. Sign in and open **Settings → AI agents**. Create a key and copy it once.
    Send it as `Authorization: Bearer phm_…`.
 3. Connect via Streamable HTTP at `https://placeshub.org/api/mcp` (locally

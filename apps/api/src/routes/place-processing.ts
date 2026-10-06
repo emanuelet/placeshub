@@ -80,7 +80,7 @@ router.get("/", async (c) => {
 			sql<{
 				attempts: number;
 				next_request_at: Date;
-			}>`SELECT attempts, next_request_at FROM google_request_usage WHERE day = ${pacificDay()}::date`,
+			}>`SELECT attempts, next_request_at FROM api_request_usage WHERE service = 'google_places' AND day = ${pacificDay()}::date`,
 		);
 		return c.json({
 			jobs,
@@ -88,7 +88,7 @@ router.get("/", async (c) => {
 			usage: {
 				attempts: usage?.attempts ?? 0,
 				dailyLimit: 1000,
-				target: 900,
+				target: 288,
 				nextRequestAt: usage?.next_request_at ?? null,
 			},
 		});

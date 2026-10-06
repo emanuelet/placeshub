@@ -51,9 +51,8 @@ statements for transaction-pooler compatibility. `SUPABASE_URL` and
 `SUPABASE_KEY` let the API validate user access tokens. Run a Worker health
 check before connecting Pages.
 
-The Worker cron runs once per minute but reserves at most one Google request per
-96 seconds. It targets 900 requests and never exceeds 1,000 attempts per
-America/Los_Angeles calendar day; retries and manual review share that limit.
+The Worker cron runs every five minutes and makes at most one Google request per
+run. All Google requests share a 1,000-attempt America/Los_Angeles daily limit.
 
 ## 3. Set up the Pages project
 
