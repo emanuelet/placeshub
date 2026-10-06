@@ -35,7 +35,7 @@ router.post('/:id/retry', async (c) => {
   try {
     const [job] = await db.select({ id: placeEnrichmentJobs.id }).from(placeEnrichmentJobs).innerJoin(savedPlaces, eq(savedPlaces.placeId, placeEnrichmentJobs.placeId)).where(and(eq(placeEnrichmentJobs.id, c.req.param('id')), eq(savedPlaces.userId, userId))).limit(1)
     if (!job) return c.json({ error: 'not found' }, 404)
-    await db.update(placeEnrichmentJobs).set({ status: 'pending', lastError: null, nextAttemptAt: new Date(), updatedAt: new Date() }).where(eq(placeEnrichmentJobs.id, job.id))
+    await db.update(placeEnrichmentJobs).set({ status: 'pending', attempts: 0, lastError: null, nextAttemptAt: new Date(), updatedAt: new Date() }).where(eq(placeEnrichmentJobs.id, job.id))
     return c.json({ success: true })
   } finally { await client.end() }
 })
@@ -48,7 +48,7 @@ router.post('/:id/select-candidate', async (c) => {
   try {
     const [job] = await db.select({ id: placeEnrichmentJobs.id, candidates: placeEnrichmentJobs.candidates }).from(placeEnrichmentJobs).innerJoin(savedPlaces, eq(savedPlaces.placeId, placeEnrichmentJobs.placeId)).where(and(eq(placeEnrichmentJobs.id, c.req.param('id')), eq(savedPlaces.userId, userId), eq(placeEnrichmentJobs.status, 'ambiguous'))).limit(1)
     const candidates = Array.isArray(job?.candidates) ? job.candidates : []
-    if (!job || !candidates.some((candidate) => typeof candidate === 'object' && candidate !== null && (candidate as { id?: unknown }).id === parsed.data.googlePlaceId)) return c.json({ error: 'candidate not found' }, 404)
+    if (!job || !candidates.some((candidate) => typeof candidate === 'object' && candidate !== null && (candidate as { googlePlaceId?: unknown }).googlePlaceId === parsed.data.googlePlaceId)) return c.json({ error: 'candidate not found' }, 404)
     await db.update(placeEnrichmentJobs).set({ status: 'details', resolvedGooglePlaceId: parsed.data.googlePlaceId, lastError: null, nextAttemptAt: new Date(), updatedAt: new Date() }).where(eq(placeEnrichmentJobs.id, job.id))
     return c.json({ success: true })
   } finally { await client.end() }

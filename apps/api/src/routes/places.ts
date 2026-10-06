@@ -8,6 +8,7 @@ import {
 import { and, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { getDb } from '../lib/db'
+import { GooglePlacesError, googlePlaces } from '../lib/google-places'
 import { type AuthEnv, auth } from '../middleware/auth'
 
 const placesRouter = new Hono<AuthEnv>()
@@ -22,77 +23,10 @@ placesRouter.get('/search', async (c) => {
   if (query.length > 200) {
     return c.json({ error: 'query must be at most 200 characters' }, 400)
   }
-  const key = c.env.GOOGLE_PLACES_API_KEY
-  if (!key) {
-    return c.json({ error: 'Google Places search is not configured' }, 503)
-  }
   try {
-    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask':
-          'places.id,places.displayName,places.location,places.formattedAddress,places.googleMapsUri,places.types,places.nationalPhoneNumber,places.websiteUri,places.rating,places.businessStatus,places.priceLevel,places.userRatingCount,places.regularOpeningHours.weekdayDescriptions,places.plusCode.globalCode',
-      },
-      body: JSON.stringify({ textQuery: query, pageSize: 20 }),
-    })
-    if (!response.ok) {
-      return c.json({ error: 'Google Places search failed' }, 502)
-    }
-    const data: {
-      places?: Array<{
-        id?: string
-        displayName?: { text?: string }
-        location?: { latitude?: number; longitude?: number }
-        formattedAddress?: string
-        googleMapsUri?: string
-        types?: string[]
-        nationalPhoneNumber?: string
-        websiteUri?: string
-        rating?: number
-        businessStatus?: string
-        priceLevel?: string
-        userRatingCount?: number
-        regularOpeningHours?: { weekdayDescriptions?: string[] }
-        plusCode?: { globalCode?: string }
-      }>
-    } = await response.json()
-    return c.json({
-      places: (data.places ?? [])
-        .filter((place) => place.id && place.displayName?.text)
-        .map((place) => ({
-          googlePlaceId: place.id,
-          name: place.displayName?.text,
-          lat: place.location?.latitude ?? null,
-          lng: place.location?.longitude ?? null,
-          address: place.formattedAddress ?? null,
-          googleMapsUri: place.googleMapsUri ?? null,
-          types: place.types ?? [],
-          phone: place.nationalPhoneNumber ?? null,
-          website: place.websiteUri ?? null,
-          rating: place.rating ?? null,
-          metadata: {
-            ...(place.businessStatus ? { businessStatus: place.businessStatus } : {}),
-            ...(place.priceLevel ? { priceLevel: place.priceLevel } : {}),
-            ...(place.userRatingCount != null ? { reviewCount: place.userRatingCount } : {}),
-            ...(place.plusCode?.globalCode ? { plusCode: place.plusCode.globalCode } : {}),
-            ...(place.regularOpeningHours?.weekdayDescriptions
-              ? {
-                  hours: place.regularOpeningHours.weekdayDescriptions.map((description) => {
-                    const separator = description.indexOf(':')
-                    return {
-                      day: separator < 0 ? description : description.slice(0, separator),
-                      hours: separator < 0 ? '' : description.slice(separator + 1).trim(),
-                    }
-                  }),
-                }
-              : {}),
-          },
-        })),
-    })
-  } catch {
-    return c.json({ error: 'Google Places search is unavailable' }, 502)
+    return c.json({ places: await googlePlaces(c.env).searchText({ textQuery: query, pageSize: 20 }) })
+  } catch (error) {
+    return c.json({ error: error instanceof GooglePlacesError ? error.message : 'Google Places search is unavailable' }, error instanceof GooglePlacesError ? error.status as 429 | 502 | 503 : 502)
   }
 })
 

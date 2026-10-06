@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 export type ProcessingJob = {
   id: string
   status: string
-  candidates: { id: string; name: string; address: string | null; lat: number | null; lng: number | null }[] | null
+  candidates: { googlePlaceId: string; name: string; address: string | null; lat: number | null; lng: number | null }[] | null
   attempts: number
   lastError: string | null
   nextAttemptAt: string
