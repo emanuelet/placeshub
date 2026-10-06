@@ -46,7 +46,7 @@ describe('place details', () => {
     expect(screen.getByRole('img', { name: 'Cafe' }).nextElementSibling).toBe(
       screen.getByRole('link', { name: /View on Google Maps/ }),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Edit(?: notes)?$/ }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Personal notes (optional)' }), {
       target: { value: 'A better coffee' },
     })
@@ -68,7 +68,7 @@ describe('place details', () => {
         onClose={vi.fn()}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Edit(?: notes)?$/ }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Personal notes (optional)' }), {
       target: { value: ' ' },
     })
