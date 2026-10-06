@@ -14,7 +14,7 @@ not the Worker URL. `placeshub-web.pages.dev` remains a Pages alias.
    database. No Drizzle migrations are currently checked in; `db:migrate` does
    not apply the bootstrap SQL. The local `supabase/config.toml` configures
    local development, not hosted auth. See
-   [Database migrations](../README.md#database-migrations).
+   [Database migrations](database-migrations.md).
 2. Enable Places API (New) in Google Cloud and obtain a server-side API key.
    Restrict the key to that API. Obtain a public Mapbox token.
 3. Set Supabase Auth's Site URL to `https://placeshub.org` and allow that origin

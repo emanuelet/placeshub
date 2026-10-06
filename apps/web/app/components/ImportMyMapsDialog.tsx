@@ -54,7 +54,7 @@ export function ImportMyMapsDialog({
         }}
       >
         <h2 id="import-mymaps-heading" className="ui-section-title">
-          Import from Google My Maps
+          Import a map
         </h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm">
           <li>
@@ -73,17 +73,21 @@ export function ImportMyMapsDialog({
           <li>Select “Entire map”, download the file, then choose it below.</li>
         </ol>
         <p className="text-sm text-muted-foreground">
+          You can also choose a GeoJSON FeatureCollection with Point geometries. Place names and
+          notes are read from the name and description properties.
+        </p>
+        <p className="text-sm text-muted-foreground">
           All point pins from every layer become one editable collection. Lines, polygons, and icon
           images are skipped. Imports do not sync with My Maps.
         </p>
         <div>
           <label htmlFor="mymaps-file" className="ui-field-label">
-            KML or KMZ file
+            KML, KMZ or GeoJSON file
           </label>
           <input
             id="mymaps-file"
             type="file"
-            accept=".kml,.kmz"
+            accept=".kml,.kmz,.geojson"
             className="ui-input"
             disabled={importCollection.isPending}
             onChange={async (event) => {

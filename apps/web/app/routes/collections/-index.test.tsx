@@ -16,7 +16,10 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('@/lib/auth', () => ({
-  useAuth: () => ({ user: authState.loggedIn ? { id: 'user-1' } : null, loading: false }),
+  useAuth: () => ({
+    user: authState.loggedIn ? { id: 'user-1' } : null,
+    loading: false,
+  }),
 }))
 
 vi.mock('@/lib/mapContext', () => ({
@@ -33,8 +36,14 @@ vi.mock('@/hooks/useCollections', () => ({
     isLoading: false,
     error: authState.queryFailure ? new Error('Network down') : null,
   }),
-  useCreateCollection: () => ({ mutateAsync: createCollection, isPending: false }),
-  useImportCollection: () => ({ mutateAsync: importCollection, isPending: false }),
+  useCreateCollection: () => ({
+    mutateAsync: createCollection,
+    isPending: false,
+  }),
+  useImportCollection: () => ({
+    mutateAsync: importCollection,
+    isPending: false,
+  }),
 }))
 
 vi.mock('@/lib/my-maps-import', () => ({ parseMyMapsFile: parseFile }))
@@ -91,15 +100,18 @@ describe('Collections route', () => {
       places: [{ name: 'Beach', lat: -8.7, lng: 115.1, notes: 'Sunset' }],
       skipped: 1,
     })
-    importCollection.mockResolvedValue({ collection: { id: 'collection-1' }, imported: 1 })
+    importCollection.mockResolvedValue({
+      collection: { id: 'collection-1' },
+      imported: 1,
+    })
     const Collections = (Route as unknown as { component: React.ComponentType }).component
     render(<Collections />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Import KML/KMZ' }))
-    expect(screen.getByRole('dialog', { name: 'Import from Google My Maps' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Import map' }))
+    expect(screen.getByRole('dialog', { name: 'Import a map' })).toBeInTheDocument()
     expect(screen.getByText(/Export to KML\/KMZ/)).toBeInTheDocument()
     expect(screen.getByText(/Entire map/)).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('KML or KMZ file'), {
+    fireEvent.change(screen.getByLabelText('KML, KMZ or GeoJSON file'), {
       target: { files: [new File(['map'], 'Bali.kmz')] },
     })
     expect(await screen.findByText(/Bali: 1 point pins ready to import/)).toBeInTheDocument()

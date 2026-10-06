@@ -1,0 +1,800 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1547554,
+          -8.6870993,
+          0
+        ]
+      },
+      "properties": {
+        "name": "KU DE TA",
+        "description": "Beautiful place on the beach for a great aperitif at sunset, good music and nice people. For dinner it is advisable to go up one floor at the MEJEKAWI restaurant",
+        "styleUrl": "#icon-1517-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-1.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1597703,
+          -8.6944351,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Plancha",
+        "description": "Great aperitif at sunset, beautiful music and lots of nice people",
+        "styleUrl": "#icon-1521-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-2.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1628709,
+          -8.6839514,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Favela Bali",
+        "description": "Unmissable venue to see for its structure and its bizarre decor. Great for a drink after dinner",
+        "styleUrl": "#icon-1517-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-1.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1500037,
+          -8.6794167,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Potato Head Beach Club",
+        "description": "Beautiful place on the beach for a great aperitif at sunset, good music and nice people",
+        "styleUrl": "#icon-1517-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-1.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.164686,
+          -8.682115,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Mama San Bali",
+        "description": "Excellent restaurant with Asian cuisine",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.164443,
+          -8.682154,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Boy'N'Cow",
+        "description": "Fantastic restaurant for those who love grilled meat",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1546197,
+          -8.6771167,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Bottega Italiana Petitenget",
+        "description": "Great for a handmade Italian style pasta dish, pleasant and relaxing environment",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1622881,
+          -8.6719335,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Da Maria",
+        "description": "Definitely the best Neapolitan type pizza in Bali. Good pasta dishes too",
+        "styleUrl": "#icon-1651-E65100",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-4.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1629255,
+          -8.6721269,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Barbacoa",
+        "description": "Excellent grilled pork and other types of meat",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1626233,
+          -8.6716268,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Sardine Restaurant",
+        "description": "Refined setting of Italian / Asian fusion cuisine. Excellent service",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.163278,
+          -8.67176,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Sundari Day Spa",
+        "description": "Elegant spa with accurate treatments. The quality of the massage is excellent.",
+        "styleUrl": "#icon-1697-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-5.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1535416,
+          -8.682443,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Bodyworks",
+        "description": "Massages with excellent value for money. Very well organized",
+        "styleUrl": "#icon-1697-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-5.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.166836,
+          -8.684692,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Jari Menari",
+        "description": "The massage is exceptional. Sure to try",
+        "styleUrl": "#icon-1697-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-5.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1643975,
+          -8.6805476,
+          0
+        ]
+      },
+      "properties": {
+        "name": "The Care Day Spa",
+        "description": "Refined environment, excellent massage",
+        "styleUrl": "#icon-1697-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-5.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.154491,
+          -8.676927,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Merah Putih",
+        "description": "Indonesian cuisine, refined surroundings and sophisticated cuisine",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.16113,
+          -8.6694646,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Nook",
+        "description": "Beautiful environment overlooking the rice field. Good Indonesian cuisine for a good price",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.156513,
+          -8.67631,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Dahana Restaurant",
+        "description": "For me this is the best Japanese restaurant in Bali.",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.139351,
+          -8.666988,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Finns Beach Club",
+        "description": "To spend a very comfortable day at the beach. Great service and a nice terrace with swimming pool. Also nice for an aperitif at sunset",
+        "styleUrl": "#icon-1521-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-2.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.146598,
+          -8.664269,
+          0
+        ]
+      },
+      "properties": {
+        "name": "The Savage Kitchen",
+        "description": "Good for breakfast or a quick lunch",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.146672,
+          -8.660993,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Peloton Supershop",
+        "description": "Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1567141,
+          -8.6747648,
+          0
+        ]
+      },
+      "properties": {
+        "name": "KYND COMMUNITY",
+        "description": "Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.130829,
+          -8.652346,
+          0
+        ]
+      },
+      "properties": {
+        "name": "The Avocado Factory Canggu",
+        "description": "Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1307797,
+          -8.6526413,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Canteen Cafe",
+        "description": "Excellent vegan fast food, serving delicious fruit extracts and breakfasts with organic cereals",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.134484,
+          -8.651323,
+          0
+        ]
+      },
+      "properties": {
+        "name": "AMO SPA CENTER CANGGU",
+        "description": "Multifunctional spa with aesthetics, manicure, pedicure and much more",
+        "styleUrl": "#icon-1697-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-5.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1388991,
+          -8.6481115,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Made's Banana Flour Co.",
+        "description": "The best Bali pastry shop. Fantastic desserts made almost by hand",
+        "styleUrl": "#icon-1534-757575",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-6.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.130769,
+          -8.652445,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Pizza Fabbrica",
+        "styleUrl": "#icon-1577-7CB342-nodesc",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.13372,
+          -8.651312,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Luigi's Hot Pizza",
+        "description": "Very good pizza made in Napolitan style.",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1316655,
+          -8.6513364,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Baracca",
+        "description": "Great Italian restaurant very good value for money",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.124844,
+          -8.654611,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Brisa Bali",
+        "description": "Unmissable, Great for an aperitif at sunset",
+        "styleUrl": "#icon-1517-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-1.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.13234,
+          -8.653211,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Bottega Italiana Canggu",
+        "styleUrl": "#icon-1577-7CB342-nodesc",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1396517,
+          -8.6619068,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Bottega Italiana Berawa",
+        "description": "Great place, you can choose 3 different restaurants menu sitting at the same table JAPANESE, PIZZERIA AND ITALIAN RESTAURANT ",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1376289,
+          -8.6650894,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Tukan Beach",
+        "description": "Small bar on the beach, great for an aperitif on Sunday before lunch:  Special offer oysters and wine",
+        "styleUrl": "#icon-1517-0288D1",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-1.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1372807,
+          -8.6487349,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Lifescrate",
+        "description": "Very good for breakfast time, ricefield view ...cheap price",
+        "styleUrl": "#icon-1534-757575",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-6.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1475505,
+          -8.6557915,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Satu-Satu",
+        "description": "Very good for breakfast",
+        "styleUrl": "#icon-1534-757575",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-6.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1484569,
+          -8.6530898,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Indigo",
+        "description": "The best Japanese restaurant in Bali",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1525324,
+          -8.6611402,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Casetta · Bali",
+        "description": "Good Italian restaurant and Pizza, good price for value",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1295244,
+          -8.6285785,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Warung el Passo",
+        "description": "Good warung (Indonesian food) in a good location",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1523761,
+          -8.6562825,
+          0
+        ]
+      },
+      "properties": {
+        "name": "07.AM Baker's Club",
+        "description": "THE BEST BREAKFAST in BALI....believe me 😜",
+        "styleUrl": "#icon-1534-757575",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-6.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1593959,
+          -8.663323,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Casa Luna",
+        "description": "YOUR VILLA TO RENT in Bali",
+        "styleUrl": "#icon-1603-000000",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-7.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1567986,
+          -8.6669814,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Dua Umalas",
+        "styleUrl": "#icon-1577-7CB342-nodesc",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1624609,
+          -8.6716594,
+          0
+        ]
+      },
+      "properties": {
+        "name": "La Baracca Bali (Seminyak)",
+        "description": "Italian restaurant....cheap and good",
+        "styleUrl": "#icon-1577-7CB342",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-3.png"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.1523801,
+          -8.6564409,
+          0
+        ]
+      },
+      "properties": {
+        "name": "Ettore Gelato Umalas",
+        "description": "The best gelato in Bali",
+        "styleUrl": "#icon-1607-9C27B0",
+        "label-scale": 0,
+        "icon-scale": 1,
+        "icon": "images/icon-8.png"
+      }
+    }
+  ]
+}

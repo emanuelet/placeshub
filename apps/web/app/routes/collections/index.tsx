@@ -96,7 +96,7 @@ function Collections() {
             onClick={() => setShowImport(true)}
             className="ui-button ui-button-secondary gap-1"
           >
-            <Upload className="h-4 w-4" aria-hidden="true" /> Import KML/KMZ
+            <Upload className="h-4 w-4" aria-hidden="true" /> Import map
           </button>
           <button
             type="button"
