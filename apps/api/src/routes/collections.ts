@@ -72,6 +72,7 @@ collectionsRouter.get('/', async (c) => {
         createdAt: collections.createdAt,
         updatedAt: collections.updatedAt,
         syncedFromGoogle: isNotNull(syncedLists.id),
+        placeCount: sql<number>`(SELECT count(*)::int FROM collection_places cp WHERE cp.collection_id = ${collections.id})`,
       })
       .from(collections)
       .leftJoin(syncedLists, eq(syncedLists.collectionId, collections.id))

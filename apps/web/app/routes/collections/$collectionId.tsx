@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowRightLeft, Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, Ellipsis, Pencil, Plus, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { AddPlaceForm } from '@/components/AddPlaceForm'
 import { MovePlacesDialog } from '@/components/MovePlacesDialog'
@@ -192,7 +192,18 @@ function CollectionDetail() {
           ) : (
             <div className="flex flex-wrap items-start gap-2">
               <div className="min-w-32 flex-1">
-                <h2 className="break-words text-lg font-bold tracking-tight">{collection.title}</h2>
+                <div className="flex items-start gap-2">
+                  <Link
+                    to="/collections"
+                    aria-label="Back to collections"
+                    className="ui-button ui-button-quiet shrink-0 px-2"
+                  >
+                    <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+                  </Link>
+                  <h2 className="break-words pt-2 text-lg font-bold tracking-tight">
+                    {collection.title}
+                  </h2>
+                </div>
                 {collection.description && (
                   <p className="break-words text-sm text-muted-foreground">
                     {collection.description}
@@ -458,7 +469,7 @@ function CollectionDetail() {
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
-                  className="w-full py-1 text-left"
+                  className="ui-place-item w-full rounded-control p-1 text-left"
                   aria-pressed={selectedId === cp.id}
                   onClick={() => {
                     setSelectedId(cp.id)

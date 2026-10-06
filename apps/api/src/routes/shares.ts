@@ -1,10 +1,57 @@
 import { collectionPlaces, collections, places, shares } from '@placeshub/db/schema'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { getDb } from '../lib/db'
 import { type AuthEnv, auth } from '../middleware/auth'
 
 const sharesRouter = new Hono<AuthEnv>()
+
+sharesRouter.get('/', auth, async (c) => {
+  const { db, client } = getDb(c.env.DATABASE_URL)
+  try {
+    const results = await db
+      .select({
+        id: shares.id,
+        collectionId: shares.collectionId,
+        collectionTitle: collections.title,
+        slug: shares.slug,
+        includeNotes: shares.includeNotes,
+        createdAt: shares.createdAt,
+        expiresAt: shares.expiresAt,
+        placeCount: sql<number>`jsonb_array_length(${shares.placesSnapshot})`,
+      })
+      .from(shares)
+      .innerJoin(collections, eq(shares.collectionId, collections.id))
+      .where(eq(collections.userId, c.get('userId')))
+      .orderBy(desc(shares.createdAt))
+    return c.json({ shares: results })
+  } finally {
+    await client.end()
+  }
+})
+
+sharesRouter.delete('/:id', auth, async (c) => {
+  const id = c.req.param('id')
+  if (!z.uuid().safeParse(id).success) return c.json({ error: 'share not found' }, 404)
+  const { db, client } = getDb(c.env.DATABASE_URL)
+  try {
+    const [deleted] = await db
+      .delete(shares)
+      .where(
+        and(
+          eq(shares.id, id),
+          sql`EXISTS (
+      SELECT 1 FROM collections c WHERE c.id = ${shares.collectionId} AND c.user_id = ${c.get('userId')}
+    )`,
+        ),
+      )
+      .returning({ id: shares.id })
+    return deleted ? c.json({ success: true }) : c.json({ error: 'share not found' }, 404)
+  } finally {
+    await client.end()
+  }
+})
 
 sharesRouter.post('/', auth, async (c) => {
   const userId = c.get('userId')

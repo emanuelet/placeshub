@@ -1,14 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Bot, Palette, RefreshCw } from 'lucide-react'
+import { Bot, Palette, RefreshCw, Share2 } from 'lucide-react'
 import { useLocalStorage } from 'usehooks-ts'
 import { GoogleSyncSettings } from '@/components/GoogleSyncSettings'
 import { McpSettings } from '@/components/McpSettings'
+import { SnapshotSettings } from '@/components/SnapshotSettings'
 
-type SettingsTab = 'google-sync' | 'appearance' | 'mcp'
+type SettingsTab = 'google-sync' | 'appearance' | 'mcp' | 'snapshots'
 
 export const Route = createFileRoute('/settings')({
   validateSearch: (search: Record<string, unknown>): { tab: SettingsTab } => ({
-    tab: search.tab === 'appearance' || search.tab === 'mcp' ? search.tab : 'google-sync',
+    tab:
+      search.tab === 'appearance' || search.tab === 'mcp' || search.tab === 'snapshots'
+        ? search.tab
+        : 'google-sync',
   }),
   component: Settings,
 })
@@ -45,11 +49,21 @@ function Settings() {
         >
           <Palette className="mr-1 h-4 w-4" aria-hidden="true" /> Appearance
         </Link>
+        <Link
+          to="/settings"
+          search={{ tab: 'snapshots' }}
+          className={`ui-button ${tab === 'snapshots' ? 'ui-button-primary' : 'ui-button-secondary'}`}
+          aria-current={tab === 'snapshots' ? 'page' : undefined}
+        >
+          <Share2 className="mr-1 h-4 w-4" aria-hidden="true" /> Snapshots
+        </Link>
       </nav>
       {tab === 'google-sync' ? (
         <GoogleSyncSettings />
       ) : tab === 'mcp' ? (
         <McpSettings />
+      ) : tab === 'snapshots' ? (
+        <SnapshotSettings />
       ) : (
         <section className="ui-panel space-y-4 p-5" aria-labelledby="sidebar-heading">
           <h2 id="sidebar-heading" className="ui-section-title">

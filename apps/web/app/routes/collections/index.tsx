@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Plus, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { CollectionListItem } from '@/components/CollectionListItem'
 import { ImportMyMapsDialog } from '@/components/ImportMyMapsDialog'
 import { useCollections, useCreateCollection } from '@/hooks/useCollections'
 import { useAuth } from '@/lib/auth'
@@ -52,7 +53,10 @@ function Collections() {
         title: trimmedTitle,
         description: description.trim() || undefined,
       })
-      navigate({ to: '/collections/$collectionId', params: { collectionId: collection.id } })
+      navigate({
+        to: '/collections/$collectionId',
+        params: { collectionId: collection.id },
+      })
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Couldn't create collection")
     }
@@ -115,7 +119,10 @@ function Collections() {
         <ImportMyMapsDialog
           onCancel={() => setShowImport(false)}
           onImported={(id) =>
-            navigate({ to: '/collections/$collectionId', params: { collectionId: id } })
+            navigate({
+              to: '/collections/$collectionId',
+              params: { collectionId: id },
+            })
           }
         />
       )}
@@ -191,28 +198,7 @@ function Collections() {
 
       <div className="space-y-3">
         {collections.map((collection) => (
-          <button
-            key={collection.id}
-            type="button"
-            onClick={() =>
-              navigate({
-                to: '/collections/$collectionId',
-                params: { collectionId: collection.id },
-              })
-            }
-            className="ui-panel block w-full min-w-0 p-4 text-left transition-colors hover:bg-muted"
-          >
-            <span className="flex flex-wrap items-center justify-between gap-2">
-              <strong className="break-words">{collection.title}</strong>
-              {collection.syncedFromGoogle && <span className="ui-badge">Google Sync</span>}
-            </span>
-            {collection.description && (
-              <p className="text-sm text-muted-foreground mt-1">{collection.description}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">
-              Created {new Date(collection.createdAt).toLocaleDateString()}
-            </p>
-          </button>
+          <CollectionListItem key={collection.id} collection={collection} />
         ))}
       </div>
     </div>
