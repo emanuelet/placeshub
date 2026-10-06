@@ -1,14 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Bot, Palette, RefreshCw } from 'lucide-react'
+import { Bot, MapPin, Palette, RefreshCw } from 'lucide-react'
 import { useLocalStorage } from 'usehooks-ts'
 import { GoogleSyncSettings } from '@/components/GoogleSyncSettings'
 import { McpSettings } from '@/components/McpSettings'
+import { PlaceProcessingSettings } from '@/components/PlaceProcessingSettings'
 
-type SettingsTab = 'google-sync' | 'appearance' | 'mcp'
+type SettingsTab = 'google-sync' | 'place-processing' | 'appearance' | 'mcp'
 
 export const Route = createFileRoute('/settings')({
   validateSearch: (search: Record<string, unknown>): { tab: SettingsTab } => ({
-    tab: search.tab === 'appearance' || search.tab === 'mcp' ? search.tab : 'google-sync',
+    tab: search.tab === 'appearance' || search.tab === 'mcp' || search.tab === 'place-processing' ? search.tab : 'google-sync',
   }),
   component: Settings,
 })
@@ -31,6 +32,14 @@ function Settings() {
         </Link>
         <Link
           to="/settings"
+          search={{ tab: 'place-processing' }}
+          className={`ui-button ${tab === 'place-processing' ? 'ui-button-primary' : 'ui-button-secondary'}`}
+          aria-current={tab === 'place-processing' ? 'page' : undefined}
+        >
+          <MapPin className="mr-1 h-4 w-4" aria-hidden="true" /> Place processing
+        </Link>
+        <Link
+          to="/settings"
           search={{ tab: 'google-sync' }}
           className={`ui-button ${tab === 'google-sync' ? 'ui-button-primary' : 'ui-button-secondary'}`}
           aria-current={tab === 'google-sync' ? 'page' : undefined}
@@ -50,6 +59,8 @@ function Settings() {
         <GoogleSyncSettings />
       ) : tab === 'mcp' ? (
         <McpSettings />
+      ) : tab === 'place-processing' ? (
+        <PlaceProcessingSettings />
       ) : (
         <section className="ui-panel space-y-4 p-5" aria-labelledby="sidebar-heading">
           <h2 id="sidebar-heading" className="ui-section-title">

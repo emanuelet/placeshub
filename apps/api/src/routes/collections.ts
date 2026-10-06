@@ -1,6 +1,8 @@
 import {
   collectionPlaces,
   collections,
+  placeEnrichmentJobs,
+  placeSourceKeys,
   places,
   savedPlaces,
   syncedLists,
@@ -151,23 +153,35 @@ collectionsRouter.post('/import', async (c) => {
       for (let offset = 0; offset < entries.length; offset += 100) {
         const batch = entries.slice(offset, offset + 100)
         const batchKeys = keys.slice(offset, offset + 100)
-        await tx
-          .insert(places)
-          .values(
-            batch.map((entry, index) => ({
+        const existingSources = await tx
+          .select({ sourceKey: placeSourceKeys.sourceKey, placeId: placeSourceKeys.placeId })
+          .from(placeSourceKeys)
+          .where(inArray(placeSourceKeys.sourceKey, batchKeys))
+        const sourceIds = new Map(existingSources.map((source) => [source.sourceKey, source.placeId]))
+        const newPlaces = batch.flatMap((entry, index) => (sourceIds.has(batchKeys[index] as string) ? [] : [{
               googlePlaceId: batchKeys[index] as string,
               name: entry.name,
               lat: entry.lat,
               lng: entry.lng,
-            })),
-          )
-          .onConflictDoNothing({ target: places.googlePlaceId })
+            }]))
+        if (newPlaces.length) {
+          await tx.insert(places).values(newPlaces).onConflictDoNothing({ target: places.googlePlaceId })
+        }
         const rows = await tx
           .select({ id: places.id, googlePlaceId: places.googlePlaceId })
           .from(places)
           .where(inArray(places.googlePlaceId, batchKeys))
-        if (rows.length !== batch.length) throw new Error('Failed to import all places')
+        if (rows.length !== batch.length - sourceIds.size) throw new Error('Failed to import all places')
         const ids = new Map(rows.map((row) => [row.googlePlaceId, row.id]))
+        for (const [key, id] of sourceIds) ids.set(key, id)
+        await tx
+          .insert(placeSourceKeys)
+          .values(batchKeys.map((sourceKey, index) => ({ sourceKey, placeId: ids.get(sourceKey) as string })))
+          .onConflictDoNothing({ target: placeSourceKeys.sourceKey })
+        await tx
+          .insert(placeEnrichmentJobs)
+          .values(batch.map((_, index) => ({ placeId: ids.get(batchKeys[index] as string) as string })))
+          .onConflictDoNothing({ target: placeEnrichmentJobs.placeId })
         await tx
           .insert(savedPlaces)
           .values(

@@ -70,12 +70,12 @@ pnpm --filter @placeshub/extension test
 
 `packages/db/supabase/` contains the legacy bootstrap scripts:
 `001-initial.sql`, `002-google-sync.sql`, `003-place-source-keys.sql`, and
-`004-mcp-api-keys.sql`. Apply all four **in order** to a new database using
+`004-mcp-api-keys.sql`, and `005-place-enrichment.sql`. Apply all five **in order** to a new database using
 `psql` or the Supabase SQL editor. The Drizzle command does not apply these
 legacy scripts. With `DATABASE_URL` exported for the intended database, run:
 
 ```sh
-for migration in packages/db/supabase/00[1-4]-*.sql; do
+for migration in packages/db/supabase/00[1-5]-*.sql; do
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration" || exit 1
 done
 ```
@@ -151,7 +151,7 @@ cannot sync.
 
 ## AI agent access (MCP)
 
-1. Apply the database migrations above, including `004-mcp-api-keys.sql`.
+1. Apply the database migrations above, including `004-mcp-api-keys.sql` and `005-place-enrichment.sql`.
 2. Sign in and open **Settings → AI agents**. Create a key and copy it once.
    Send it as `Authorization: Bearer phm_…`.
 3. Connect via Streamable HTTP at `https://placeshub.org/api/mcp` (locally

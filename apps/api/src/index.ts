@@ -3,10 +3,12 @@ import { cors } from 'hono/cors'
 import { collections } from './routes/collections'
 import { mcp } from './routes/mcp'
 import { mcpKeys } from './routes/mcp-keys'
+import { placeProcessing } from './routes/place-processing'
 import { places } from './routes/places'
 import { saved } from './routes/saved'
 import { shares } from './routes/shares'
 import { sync } from './routes/sync'
+import { processOnePlaceEnrichment } from './lib/place-enrichment'
 
 export type Bindings = {
   SUPABASE_URL: string
@@ -28,5 +30,11 @@ app.route('/api/shares', shares)
 app.route('/api/sync', sync)
 app.route('/api/mcp/keys', mcpKeys)
 app.route('/api/mcp', mcp)
+app.route('/api/place-processing', placeProcessing)
 
-export default app
+export default {
+  fetch: app.fetch,
+  scheduled: (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
+    ctx.waitUntil(processOnePlaceEnrichment(env))
+  },
+}
