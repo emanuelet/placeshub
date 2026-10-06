@@ -32,7 +32,7 @@ not installable packages. Nothing here has been submitted.
 **Website:** https://placeshub.org  
 **Privacy policy:** https://placeshub.org/privacy  
 **Source and support website:** https://github.com/emanuelet/placeshub/issues  
-**Support email:** [owner must supply and verify before submission]
+**Support email:** support@placeshub.org (verify delivery before submission)
 
 ## Store images
 

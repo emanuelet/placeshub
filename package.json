@@ -10,12 +10,13 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "supabase": "^2.117.0",
-    "turbo": "^2.11.4",
+    "@types/node": "^24.13.6",
+    "@biomejs/biome": "^2.5.15",
+    "supabase": "^2.119.0",
+    "turbo": "^2.11.7",
     "typescript": "7.0.2"
   },
-  "packageManager": "pnpm@12.6.0",
+  "packageManager": "pnpm@12.9.0",
   "engines": {
     "node": ">=24 <25"
   }
